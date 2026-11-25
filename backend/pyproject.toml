@@ -67,6 +67,8 @@ asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     # Raised inside docling-core's table serializer (third-party code), not ours.
     "ignore:Setting an item of incompatible dtype is deprecated",
+    # Qdrant's in-memory test mode ignores payload indexes; the server uses them.
+    "ignore:Payload indexes have no effect in the local Qdrant",
 ]
 markers = [
     "integration: needs Postgres from docker compose (skipped locally if it is down, fails in CI)",
