@@ -51,3 +51,15 @@ def add_table(doc: DoclingDocument, rows: list[list[str]], page: int | None = No
 def add_picture(doc: DoclingDocument, page: int) -> None:
     """A scanned image with no readable text, as when OCR fails."""
     doc.add_picture(prov=prov(page))
+
+
+def add_picture_with_text(
+    doc: DoclingDocument, lines: list[str], page: int, caption: str | None = None
+) -> None:
+    """An image whose OCR text Docling filed inside the picture (e.g. a scanned table)."""
+    picture = doc.add_picture(prov=prov(page))
+    for line in lines:
+        doc.add_text(label=DocItemLabel.TEXT, text=line, prov=prov(page, line), parent=picture)
+    if caption:
+        item = doc.add_text(label=DocItemLabel.CAPTION, text=caption, parent=picture)
+        picture.captions.append(item.get_ref())
