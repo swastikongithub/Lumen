@@ -4,6 +4,8 @@
 #   - no documents containing personal data (names, registration numbers)
 #   - one entry per document; `id` must be unique and stable
 #   - category: academics | exams | hostel | fees | placements | other
+#   - optional `fetch: manual` for public pages that robots.txt closes to
+#     crawlers: save them as data/raw/<id>.<ext> by hand (SPEC §8)
 
 - id: exam-policy
   title: "Examination Policy"
