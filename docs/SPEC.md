@@ -285,8 +285,8 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
 
 **`kb_chunks`**
 - Named vectors: `dense` (384, cosine) and sparse `bm25` with `modifier = IDF`.
-- Payload: `chunk_id`, `document_id`, `title`, `source_url`, `category`, `academic_year`, `origin` (`lpu.in` or `ums`, §3.2), `page_start`, `page_end`, `headings` (list), `text`, `corpus_version`, `embed_model`.
-- Payload indexes: `category`, `document_id`, `academic_year`, `origin`, `corpus_version`.
+- Payload: `chunk_id`, `document_id`, `source_id` (the golden set's key, §11.1), `title`, `source_url`, `category`, `academic_year`, `origin` (`lpu.in` or `ums`, §3.2), `chunk_index`, `page_start`, `page_end`, `headings` (list), `text`, `token_count` (for `lumen stats`), `corpus_version`, `embed_model`.
+- Payload indexes: `category`, `document_id`, `source_id`, `academic_year`, `origin`, `corpus_version`.
 - Point ID: deterministic UUIDv5 of `document_id + chunk_index + content_hash` so re-ingestion is idempotent.
 
 **`answer_cache`**
