@@ -6,7 +6,11 @@ and keeps layout, tables, headings and page numbers. Web pages are cleaned first
 
 Guardrail: a paginated document is rejected when more than `max_empty_page_ratio`
 of its pages yield no text even after OCR, so a bad scan is never half-indexed.
-A page counts as having content if it holds text or a table with cells.
+- A page has content if it holds text or a table with cells.
+- A page where Docling found nothing at all (no text, picture or table) is a blank
+  separator page, not a failed scan, and is left out of the ratio. A scanned page
+  that OCR could not read still has layout elements (a picture, empty text), so it
+  counts as empty.
 """
 
 import logging
@@ -16,7 +20,7 @@ from pathlib import Path
 
 from docling.datamodel.base_models import DocumentStream
 from docling.document_converter import DocumentConverter
-from docling_core.types.doc import DoclingDocument, TableItem, TextItem
+from docling_core.types.doc import ContentLayer, DoclingDocument, TableItem, TextItem
 
 from app.ingest.html_clean import clean_html
 
@@ -32,6 +36,16 @@ class ParsedDocument:
     document: DoclingDocument
     page_count: int  # 0 for formats without pages (HTML, Markdown, DOCX)
     empty_pages: list[int] = field(default_factory=list)
+    blank_pages: list[int] = field(default_factory=list)
+
+
+def pages_with_elements(doc: DoclingDocument) -> set[int]:
+    """Page numbers where Docling found anything: text, pictures, tables, headers."""
+    layers = {ContentLayer.BODY, ContentLayer.FURNITURE}
+    pages: set[int] = set()
+    for item, _level in doc.iterate_items(traverse_pictures=True, included_content_layers=layers):
+        pages.update(prov.page_no for prov in getattr(item, "prov", None) or [])
+    return pages
 
 
 def pages_with_content(doc: DoclingDocument) -> set[int]:
@@ -61,15 +75,18 @@ def check_text_coverage(doc: DoclingDocument, max_empty_ratio: float) -> ParsedD
         raise ParseError("no text found (scanned file without readable text?)")
     if not page_numbers:
         return ParsedDocument(doc, page_count=0)
+    occupied = pages_with_elements(doc)
+    blank = [page for page in page_numbers if page not in occupied]
+    counted = [page for page in page_numbers if page in occupied]
     with_content = pages_with_content(doc)
-    empty = [page for page in page_numbers if page not in with_content]
-    ratio = len(empty) / len(page_numbers)
+    empty = [page for page in counted if page not in with_content]
+    ratio = len(empty) / len(counted) if counted else 0.0
     if ratio > max_empty_ratio:
         raise ParseError(
-            f"{len(empty)} of {len(page_numbers)} pages have no text "
+            f"{len(empty)} of {len(counted)} non-blank pages have no text "
             f"({ratio:.0%} > {max_empty_ratio:.0%}): pages {empty}"
         )
-    return ParsedDocument(doc, page_count=len(page_numbers), empty_pages=empty)
+    return ParsedDocument(doc, page_count=len(page_numbers), empty_pages=empty, blank_pages=blank)
 
 
 class Parser:
@@ -94,4 +111,6 @@ class Parser:
         parsed = check_text_coverage(result.document, self.max_empty_page_ratio)
         if parsed.empty_pages:
             logger.info("%s: pages without text: %s", path.name, parsed.empty_pages)
+        if parsed.blank_pages:
+            logger.info("%s: blank pages ignored: %s", path.name, parsed.blank_pages)
         return parsed
