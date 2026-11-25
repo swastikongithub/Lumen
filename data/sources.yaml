@@ -21,8 +21,9 @@
 # public `url` is still what citations link to.
 #
 # `fetch: manual` is also used for files that must be converted by hand:
-# a legacy .doc (save as PDF in Word), a PDF inside a .zip, or a page that
-# needs a login. Save the result as data/raw/<id>.pdf (or .md).
+# a legacy .doc (Save as PDF in Word, or extract its text to Markdown), a PDF
+# inside a .zip, or a page that needs a login. Save the result as
+# data/raw/<id>.pdf (or .md).
 #
 # category: academics | exams | hostel | fees | placements | other
 # academic_year: only when the document states it.
@@ -297,7 +298,7 @@
   academic_year: "2026"
   origin: ums
   fetch: manual
-  note: "UMS announcement, 19 Nov 2026. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS announcement, 19 Nov 2026. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
 
 - id: credit-transfer
   title: "Guidelines for Credit Transfer as an Option"
@@ -422,7 +423,7 @@
   category: exams
   origin: ums
   fetch: manual
-  note: "UMS > Examination Instructions and Guidelines. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS > Examination Instructions and Guidelines. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
 
 - id: question-paper-discrepancy
   title: "Reporting a Question Paper Discrepancy through UMS"
@@ -481,7 +482,7 @@
   category: fees
   origin: ums
   fetch: manual
-  note: "UMS > Examination Instructions and Guidelines > States Scholarships. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS > Examination Instructions and Guidelines > States Scholarships. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
 
 - id: sports-scholarship-retaining
   title: "Sports Scholarship Retaining Policy"
@@ -699,7 +700,7 @@
   category: other
   origin: ums
   fetch: manual
-  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS > DSA Policy View. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
 
 - id: sports-gear-issuing-policy
   title: "Sports Gear Issuing Policy"
@@ -707,7 +708,7 @@
   category: other
   origin: ums
   fetch: manual
-  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS > DSA Policy View. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
 
 - id: earn-while-you-learn-policy
   title: "Student Employment Policy (Earn While You Learn)"
@@ -715,7 +716,7 @@
   category: other
   origin: ums
   fetch: manual
-  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS > DSA Policy View. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
 
 - id: entrepreneurship-policy
   title: "Student Entrepreneurship Policy"
@@ -723,4 +724,4 @@
   category: other
   origin: ums
   fetch: manual
-  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+  note: "UMS > DSA Policy View. Legacy .doc: its text was converted by hand to data/raw/<id>.md (Save as PDF in Word also works)."
