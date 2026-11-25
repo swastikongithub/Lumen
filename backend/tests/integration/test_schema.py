@@ -2,7 +2,7 @@
 
 import uuid
 
-import httpx
+import httpx2
 import pytest
 from alembic import command
 from sqlalchemy import delete, func, select, text
@@ -79,8 +79,8 @@ async def test_meta_endpoint_reads_corpus_version_from_postgres(db_session: Asyn
 
     app = create_app(Settings(_env_file=None))
     app.dependency_overrides[get_db] = lambda: db_session
-    transport = httpx.ASGITransport(app=app)
-    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+    transport = httpx2.ASGITransport(app=app)
+    async with httpx2.AsyncClient(transport=transport, base_url="http://test") as client:
         response = await client.get("/api/v1/meta")
 
     assert response.status_code == 200
