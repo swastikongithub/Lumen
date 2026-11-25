@@ -5,7 +5,10 @@
 #   - one entry per document; `id` must be unique and stable
 #   - category: academics | exams | hostel | fees | placements | other
 #   - optional `fetch: manual` for public pages that robots.txt closes to
-#     crawlers: save them as data/raw/<id>.<ext> by hand (SPEC §8)
+#     crawlers, or files that need converting by hand (legacy .doc, a PDF
+#     inside a .zip): save them as data/raw/<id>.<ext> by hand (SPEC §8)
+#   - optional `origin: ums` for general policies linked from UMS, so they
+#     can be included or left out as a group (SPEC §3.2)
 
 - id: exam-policy
   title: "Examination Policy"
