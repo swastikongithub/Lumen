@@ -18,7 +18,9 @@ dependencies = [
 
 [dependency-groups]
 # Offline ingestion only (Phase 1). Docling must never move into [project].
-ingest = []
+ingest = [
+    "docling>=2.153.0",
+]
 # Evaluation scripts (Phase 3).
 eval = []
 dev = [
