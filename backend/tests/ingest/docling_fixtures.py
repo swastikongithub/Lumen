@@ -46,3 +46,8 @@ def add_table(doc: DoclingDocument, rows: list[list[str]], page: int | None = No
     ]
     data = TableData(num_rows=len(rows), num_cols=len(rows[0]), table_cells=cells)
     doc.add_table(data=data, prov=prov(page) if page else None)
+
+
+def add_picture(doc: DoclingDocument, page: int) -> None:
+    """A scanned image with no readable text, as when OCR fails."""
+    doc.add_picture(prov=prov(page))
