@@ -1,0 +1,226 @@
+# Lumen corpus: public LPU documents only (CLAUDE.md rule 5, SPEC §3 and §8).
+#
+# Every URL below opens without a login. Each one was checked for personal
+# data (student names, registration numbers) on 26 Nov 2026.
+#
+# Not included:
+#   - lpu.in/placements.php, because it names placed students with their
+#     packages (personal data)
+#   - Scribd, GitHub and other third-party copies of LPU rules, because they
+#     are unofficial and often outdated
+#   - anything inside UMS
+#
+# robots.txt: lpu.in blocks generic crawlers from /downloads and /sustainable
+# but allows named AI agents everywhere. Entries under those paths are marked
+# `fetch: manual`. The ingester never downloads them automatically: save the
+# file in a browser as data/raw/<id>.<ext> and it is used from there. The
+# public `url` is still what citations link to.
+#
+# category: academics | exams | hostel | fees | placements | other
+# academic_year: only when the document states it.
+
+# --- Academics -------------------------------------------------------------
+
+- id: general-admission-guidelines
+  title: "General Guidelines for Admissions etc. (2026)"
+  url: "https://www.lpu.in/lpu-assets/download/international/general-admission-guidelines.pdf"
+  category: academics
+  academic_year: "2026"
+  note: >-
+    lpu.in international admissions file. The international scholarship page
+    still links an older path (/international/downloads/...) that no longer
+    serves the PDF; this lpu-assets copy is the live one. Covers eligibility,
+    programme transfer, attendance conditions, registration, refunds and
+    changes to residential facilities.
+
+- id: academic-calendar
+  title: "Academic Calendar for Regular Programmes"
+  url: "https://www.lpu.in/academics/calendar-regular-programmes.php"
+  category: academics
+  academic_year: "2026-27"
+  note: "lpu.in > Academics > Academic Calendar. Term dates, reappear exams, MTT and term breaks."
+
+- id: holiday-list
+  title: "List of Holidays 2026"
+  url: "https://www.lpu.in/academics/holiday-list.php"
+  category: academics
+  academic_year: "2026"
+  note: "lpu.in > Academics > Holiday List."
+
+- id: mentorship-guidelines
+  title: "Mentorship Guidelines"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg10/mentorship-guidelines.php"
+  category: academics
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 10). Reviewed 2025."
+
+- id: university-resources-access
+  title: "Guidelines for Access of University Resources"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg4/guidelines-access-of-university-resources.php"
+  category: academics
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 4). Reviewed 2025."
+
+- id: library-services
+  title: "Libraries and Library Services"
+  url: "https://www.lpu.in/academics/libraries.php"
+  category: academics
+  note: "lpu.in > Academics > Libraries. Services and timings."
+
+- id: phd-rules
+  title: "Doctor of Philosophy (Ph.D.) Rules"
+  url: "https://www.lpu.in/nest/phd/rules.php"
+  category: academics
+  academic_year: "2026"
+  note: "lpu.in > LPUNEST > Ph.D. > Rules."
+
+# --- Exams -----------------------------------------------------------------
+
+- id: assessment-evaluation
+  title: "Assessment and Evaluation"
+  url: "https://www.lpu.in/academics/assessment-and-evaluation.php"
+  category: exams
+  note: "lpu.in > Academics > Assessment and Evaluation. End-term exams and scrutiny of answer sheets."
+
+# --- Hostel ----------------------------------------------------------------
+
+- id: residential-guidelines
+  title: "Students Residential Guidelines (Residence, Mess, Laundry, Transport, Parking, Loan)"
+  url: "https://www.lpu.in/lpu-assets/download/Students-Residential-Mess-Laundry-Transport-Parking-Loan-Facility.pdf"
+  category: hostel
+  note: "Linked from lpu.in > Student Services > Residence. Scanned PDF, so it needs OCR."
+
+- id: hostel-residences
+  title: "Hostels and Residences"
+  url: "https://www.lpu.in/student-services/residence.php"
+  category: hostel
+  academic_year: "2026-27"
+  note: "lpu.in > Student Services > Residence. Room types and residential fee charges."
+
+- id: hostel-brochure
+  title: "LPU Hostel Accommodation Brochure"
+  url: "https://www.lpu.in/lpu-assets/download/hostel-brochure.pdf"
+  category: hostel
+  note: >-
+    Linked from lpu.in > Student Services > Residence. Image-only PDF, so it
+    needs OCR. Short overview of rooms, mess, laundry, gym and campus services.
+
+# --- Fees ------------------------------------------------------------------
+
+- id: scholarships
+  title: "Scholarships"
+  url: "https://www.lpu.in/scholarship/scholarship.php"
+  category: fees
+  academic_year: "2026"
+  note: "lpu.in > Scholarship. Scholarship categories and eligibility bases."
+
+- id: scholarship-guidelines
+  title: "Scholarship Guidelines (Inclusivity through Scholarships)"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg1/scholarships-guidelines.php"
+  category: fees
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 1)."
+
+- id: education-loan-assistance
+  title: "Education Loan and EMI Financing Assistance"
+  url: "https://www.lpu.in/student-services/education-loan-assistance.php"
+  category: fees
+  note: "lpu.in > Student Services > Education Loan Assistance."
+
+- id: international-refund-policy
+  title: "Refund Policy for International Students (July 2026 session)"
+  url: "https://www.lpu.in/lpu-assets/download/international/refund-policy.pdf"
+  category: fees
+  academic_year: "2026"
+  note: "Linked from the lpu.in international FAQ pages."
+
+# --- Placements ------------------------------------------------------------
+
+- id: career-enhancement
+  title: "Career Enhancement Initiatives"
+  url: "https://www.lpu.in/campus-life/career-enhancement-initiatives.php"
+  category: placements
+  note: "lpu.in > Campus Life > Career Enhancement. Training, counselling and placement preparation."
+
+# --- Other (student welfare, conduct, campus services) ---------------------
+
+- id: student-grievance-redressal-policy
+  title: "Student Grievance Redressal Policy"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg10/student-grievance-redressal-policy.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 10). Reviewed 2025."
+
+- id: anti-ragging-policy
+  title: "Anti-Ragging Policy"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg10/anti-ragging-policy.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 10). Reviewed 2025."
+
+- id: anti-sexual-harassment-policy
+  title: "Anti-Sexual Harassment Policy"
+  url: "https://www.lpu.in/downloads/anti-sexual-harrasment-policy.pdf"
+  category: other
+  fetch: manual
+  note: "Linked in the footer of every lpu.in page. Scanned PDF, so it needs OCR."
+
+- id: anti-discrimination-guidelines
+  title: "Guidelines for Anti-Discrimination"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg10/guidelines-for-anti-discrimination.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 10)."
+
+- id: anti-harassment-guidelines
+  title: "Guidelines on Anti-Harassment"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg10/guidelines-on-anti-harassment.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 10)."
+
+- id: disability-accommodation-guidelines
+  title: "Accommodation Guidelines and Strategies for Persons with Disability"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg10/accommodation-guidelines-strategy-for-persons-with-disability.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 10)."
+
+- id: equal-opportunity-transgender
+  title: "Equal Opportunity Policy for Transgender Persons"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg5/equal-opportunity-policy-for-transgender.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 5). Reviewed 2025."
+
+- id: smoke-free-campus
+  title: "Guidelines for Smoke-free Campus"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg3/guidelines-smoke-free-guidelines.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 3). Reviewed 2025."
+
+- id: student-support-system
+  title: "Staff Welfare Framework and Student Support Systems"
+  url: "https://www.lpu.in/SUSTAINABLE/sdg5/staff-welfare-framework-and-student-support-system.php"
+  category: other
+  fetch: manual
+  note: "lpu.in sustainability pages (SDG 5)."
+
+- id: lpu-act-2005
+  title: "The Lovely Professional University Act, 2005 (Punjab Act No. 25 of 2005)"
+  url: "https://www.lpu.in/lpu-assets/download/act/act.pdf"
+  category: other
+  note: "Linked in the footer of every lpu.in page. Gazette scan, so it needs OCR. Establishment, authorities and powers of the University."
+
+- id: health-care-services
+  title: "Student Health Care Services"
+  url: "https://www.lpu.in/student-services/healthcare.php"
+  category: other
+  note: "lpu.in > Student Services > Healthcare. Lists official helpline numbers only."
+
+- id: transport-facilities
+  title: "Transport and Parking Facilities"
+  url: "https://www.lpu.in/student-services/transport.php"
+  category: other
+  note: "lpu.in > Student Services > Transport. Bus routes and parking."
