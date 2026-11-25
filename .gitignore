@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+frontend/build/
+
+# Android / Capacitor
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/local.properties
+frontend/android/app/release/
+*.aab
+*.apk
+
+# Signing keys (never commit)
+*.jks
+*.keystore
+keystore.properties
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Data and local caches
+data/raw/
+.cache/
+local_cache/
+*.sqlite3
+
+# Eval scratch output (committed reports live in evals/reports/)
+evals/reports/*.tmp
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
