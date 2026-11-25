@@ -57,7 +57,7 @@ All LPU specifics live in `data/sources.yaml` and the category list. Pointing Lu
 |---|---|---|---|
 | Language | **Python 3.12** | Python ✔ (FastAPI ecosystem new) | Best RAG/ML library support |
 | API framework | **FastAPI** + Pydantic v2 + pydantic-settings | **New** | Async, streaming responses, auto OpenAPI docs |
-| Package/tooling | **uv** (deps), **Ruff** (lint/format), **pytest** + pytest-asyncio + httpx | **New** | Fast, modern Python tooling |
+| Package/tooling | **uv** (deps), **Ruff** (lint/format), **pytest** + pytest-asyncio + httpx2 | **New** | Fast, modern Python tooling |
 | Document parsing | **Docling** (+ its `HybridChunker`) | **New** | Layout-aware PDF parsing (tables, headings, reading order); chunks keep heading context |
 | Embeddings (dense) | **FastEmbed** with `BAAI/bge-small-en-v1.5` (384-dim, ONNX on CPU) | **New** | Runs locally on CPU, no API quota, small enough for a free-tier container |
 | Keyword search (sparse) | **Qdrant server-side BM25** (`Qdrant/bm25`, IDF modifier) | **New** | Exact-term matching for things like section numbers and form names; Qdrant computes BM25 itself (needs Qdrant v1.15.3+) |
@@ -143,7 +143,7 @@ lumen/
 │   └── brand/                       # logo mark SVGs
 ├── store/                           # Play listing assets: icon 512, feature graphic, screenshots, listing text
 ├── backend/
-│   ├── pyproject.toml               # uv; dependency groups: api, ingest, eval, dev
+│   ├── pyproject.toml               # uv; API deps in [project]; groups: ingest, eval, dev
 │   ├── Dockerfile                   # API only; bakes FastEmbed models into the image
 │   ├── alembic.ini
 │   ├── migrations/
@@ -233,10 +233,13 @@ lumen/
 
 ### 7.1 Postgres (SQLAlchemy 2.0)
 
-**documents**
+Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres enums), so adding a value later is a plain migration.
+
+**documents** (one row per version of a source document)
 | column | type | notes |
 |---|---|---|
 | id | uuid pk | |
+| source_id | text | the stable `id` from `data/sources.yaml`; unique with `version`; at most one `active` row per `source_id` |
 | title | text | |
 | source_url | text | official public URL |
 | category | enum | academics, exams, hostel, fees, placements, other |
@@ -246,6 +249,8 @@ lumen/
 | status | enum | active, superseded |
 | page_count, chunk_count | int | |
 | ingested_at | timestamptz | |
+
+**corpus_versions**: version int pk (autoincrement), created_at. One row per ingestion run that changed the index; the current `corpus_version` is the highest.
 
 **conversations**: id uuid, session_id text (anonymous ID from the `X-Session-Id` header, §10), client enum (web, android), app_version text null, created_at.
 
@@ -260,13 +265,13 @@ lumen/
 | citations | jsonb | `[{n, chunk_id, document_id, page_start, page_end}]` |
 | abstained | bool | |
 | cache_hit | bool | |
-| model | text | which LLM actually answered |
+| model | text null | which LLM actually answered; this and the fields below are filled only for assistant messages |
 | tokens_in, tokens_out | int | |
 | latency_ms, ttft_ms | int | total and time-to-first-token |
 | trace_id | text | Langfuse trace link |
 | created_at | timestamptz | |
 
-**feedback**: id, message_id fk, rating (+1/−1), reason enum (wrong, outdated, not_found, unclear, offensive, other), comment text null, created_at. One rating per message (upsert).
+**feedback**: id, message_id fk (unique), rating (+1/−1), reason enum null (wrong, outdated, not_found, unclear, offensive, other; empty for thumbs-up), comment text null, created_at. One rating per message (upsert on `message_id`).
 
 ### 7.2 Qdrant collections
 
