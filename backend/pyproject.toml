@@ -64,6 +64,10 @@ testpaths = ["tests"]
 addopts = "-ra"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # Raised inside docling-core's table serializer (third-party code), not ours.
+    "ignore:Setting an item of incompatible dtype is deprecated",
+]
 markers = [
     "integration: needs Postgres from docker compose (skipped locally if it is down, fails in CI)",
 ]
