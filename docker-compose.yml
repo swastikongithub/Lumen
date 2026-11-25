@@ -1,0 +1,46 @@
+# Local infrastructure for development: Qdrant + Postgres.
+#   docker compose up -d      start (data persists in named volumes)
+#   docker compose down       stop
+#   docker compose down -v    stop and delete all local data
+#
+# Versions are pinned so local, CI and the hosted services match:
+#   - Qdrant >= 1.15.3 is needed for server-side BM25; keep Qdrant Cloud on the same minor.
+#   - Postgres 18 is Neon's default major version; create the Neon project on 18 too.
+# Credentials are local-only defaults. Override any value with an environment variable.
+# Postgres listens on host port 5433 so it never clashes with a native Postgres on 5432.
+
+name: lumen
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.20.2
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lumen}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-lumen}
+      POSTGRES_DB: ${POSTGRES_DB:-lumen}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # Postgres 18+ images keep data under /var/lib/postgresql (not .../data).
+      - postgres_data:/var/lib/postgresql
+      # Runs once, on first start with an empty volume: creates the lumen_test database.
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
+  postgres_data:
