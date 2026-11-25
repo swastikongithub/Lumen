@@ -13,7 +13,7 @@ Lumen is a cited Q&A assistant for LPU students, built as a production-grade RAG
 2. **No LangChain or LlamaIndex** in the retrieval/generation pipeline. Write it by hand. LiteLLM is only for provider calls; Docling only for parsing.
 3. **Docling lives only in the `ingest` dependency group.** It must never end up in the API Docker image.
 4. **Never invent numbers.** README, reports and CV text get measured metric values or clear `[placeholder]`s, nothing made up.
-5. **Index only public documents** listed in `data/sources.yaml`. No personal data, nothing behind a login.
+5. **Index only documents listed in `data/sources.yaml`**: lpu.in documents, plus general student policies that UMS links to (`origin: ums`, added at the owner's direction; SPEC §3.2). No personal data: never a student's own UMS pages, result lists or case records. Lumen itself never logs in anywhere.
 6. Never commit `.env`, API keys or `data/raw/`. Keep `.env.example` up to date when adding a setting.
 7. No Tailwind. Svelte scoped CSS + the CSS variables in `docs/DESIGN.md`.
 8. **Android = Capacitor, configured with `capacitor.config.json`** (never `capacitor.config.ts`). The Java/Kotlin/Gradle files that Capacitor generates in `frontend/android/` are fine; write native code there only if a plugin can't do the job, and ask first.
