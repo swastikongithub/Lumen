@@ -5,7 +5,13 @@ from types import SimpleNamespace
 from docling_core.transforms.chunker.tokenizer.base import BaseTokenizer
 
 from app.ingest.chunk import DocumentChunker, page_range
-from tests.ingest.docling_fixtures import add_heading, add_paragraph, add_table, make_document
+from tests.ingest.docling_fixtures import (
+    add_heading,
+    add_paragraph,
+    add_picture_with_text,
+    add_table,
+    make_document,
+)
 
 
 class WordTokenizer(BaseTokenizer):
@@ -90,3 +96,50 @@ def test_page_range_spans_all_items() -> None:
 
     assert page_range(items) == (2, 4)
     assert page_range([]) == (None, None)
+
+
+BENEFITS = [
+    "PROPOSED ACADEMIC BENEFITS TO CULTURAL STUDENTS (2021-22)",
+    "International medalist or participation in calendared event",
+    "Bonus marks 35%",
+    "National AIU Youth Festival medalist",
+    "Bonus marks 30%",
+    "Reappear chances as per existing policy",
+    "Backlog and reappear fee waiver",
+]
+
+
+def test_text_inside_pictures_gets_its_own_chunks() -> None:
+    doc = make_document(pages=1)
+    add_picture_with_text(doc, BENEFITS, page=1, caption="Academic benefits")
+
+    chunks = chunker(max_tokens=200).chunk(doc)
+
+    (chunk,) = [c for c in chunks if "Bonus marks" in c.text]
+    assert "Bonus marks 35%" in chunk.text
+    assert chunk.headings == ("Academic benefits",)
+    assert chunk.embed_text.startswith("Academic benefits\n")
+    assert (chunk.page_start, chunk.page_end) == (1, 1)
+
+
+def test_pictures_with_little_text_are_skipped() -> None:
+    doc = make_document(pages=1)
+    add_paragraph(doc, "Hostel fees are listed below.", page=1)
+    add_picture_with_text(doc, ["LOVELY PROFESSIONAL UNIVERSITY"], page=1)  # a logo
+
+    chunks = chunker().chunk(doc)
+
+    assert [c.text for c in chunks] == ["Hostel fees are listed below."]
+
+
+def test_long_picture_text_is_split_under_the_token_limit() -> None:
+    doc = make_document(pages=2)
+    add_paragraph(doc, "Intro.", page=1)
+    add_picture_with_text(doc, BENEFITS * 3, page=2)
+
+    chunks = chunker(max_tokens=30).chunk(doc)
+
+    picture_chunks = [c for c in chunks if c.page_start == 2]
+    assert len(picture_chunks) > 1
+    assert all(c.token_count <= 30 for c in picture_chunks)
+    assert [c.index for c in chunks] == list(range(len(chunks)))
