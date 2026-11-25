@@ -110,7 +110,6 @@ def test_vector_count_must_match_chunks() -> None:
         build_points(meta(), chunks(2), [[0.1, 0.2, 0.3, 0.4]], sparse)
 
 
-@pytest.mark.filterwarnings("ignore:Payload indexes have no effect in the local Qdrant")
 def test_collection_has_named_vectors_idf_and_payload_indexes(qdrant: QdrantClient) -> None:
     info = qdrant.get_collection("kb_chunks")
 
