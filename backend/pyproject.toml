@@ -1,0 +1,63 @@
+[project]
+name = "lumen"
+version = "0.1.0"
+description = "Cited Q&A assistant for LPU students: FastAPI backend, ingestion and evals"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+# API runtime dependencies. This is all the API Docker image installs
+# (`uv sync --no-default-groups`), so heavy tooling stays in the groups below.
+dependencies = [
+    "alembic>=1.20.1",
+    "asyncpg>=0.32.0",
+    "fastapi>=0.165.0",
+    "pydantic-settings>=2.16.3",
+    "qdrant-client>=1.20.0",
+    "sqlalchemy[asyncio]>=2.1.9",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+# Offline ingestion only (Phase 1). Docling must never move into [project].
+ingest = []
+# Evaluation scripts (Phase 3).
+eval = []
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "ruff>=0.17.6",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# Flat layout: the importable package is backend/app.
+module-name = "app"
+module-root = ""
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # import sorting
+    "B",        # bugbear
+    "UP",       # pyupgrade
+    "SIM",      # simplify
+    "ASYNC",    # async pitfalls
+    "RUF",      # ruff-specific
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "integration: needs Postgres from docker compose (skipped locally if it is down, fails in CI)",
+]
