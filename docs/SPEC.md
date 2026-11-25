@@ -314,7 +314,7 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
 5. **Upsert:** dense vector + `models.Document(text=..., model="Qdrant/bm25")` for the sparse vector so Qdrant computes BM25 server-side. Use the same call at query time.
 6. **Supersede:** if a document's hash changed, delete its old points and mark the old version `superseded`.
 7. **Register:** upsert the `documents` row; bump the global `corpus_version`.
-8. **Guardrails:** reject a document if more than 20% of its pages produce no text (scanned PDF without OCR) and log it; never index files from `sources.yaml` entries missing a `url`.
+8. **Guardrails:** reject a document if more than 20% of its pages produce no text (scanned PDF without OCR) and log it. A page holding a table counts as text. A page with nothing on it at all (a blank separator page) is left out of the ratio; never index files from `sources.yaml` entries missing a `url`.
 
 CLI:
 ```
