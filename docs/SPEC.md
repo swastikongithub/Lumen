@@ -299,6 +299,7 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
      academic_year: "2025-26"
      note: "Publicly linked from the official website"
    ```
+   The fetcher identifies itself with its own User-Agent and obeys `robots.txt` (RFC 9309). An entry marked `fetch: manual` (a public page under a path that robots.txt closes to generic crawlers) is never downloaded automatically. Someone saves it in a browser as `data/raw/<id>.<ext>`, and the ingester reads it from there. Citations still link to the public `url`.
 2. **Parse:** Docling `DocumentConverter` → `DoclingDocument` (layout, tables, headings, page numbers).
 3. **Chunk:** Docling `HybridChunker` with the embedding model's tokenizer, `max_tokens` from config (default 384; ablate 256/384/512). Use `chunker.contextualize(chunk)` (heading path + text) as the **embedded** text; keep the raw chunk text for display.
 4. **Embed:** FastEmbed `bge-small-en-v1.5` in batches of 64.
