@@ -17,6 +17,10 @@ dependencies = [
     "uvicorn[standard]>=0.54.0",
 ]
 
+[project.scripts]
+# `uv run lumen ingest --all` / `uv run lumen stats`. Needs the ingest group.
+lumen = "app.ingest.cli:app"
+
 [dependency-groups]
 # Offline ingestion only (Phase 1). Docling must never move into [project].
 ingest = [
