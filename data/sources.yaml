@@ -1,14 +1,18 @@
-# Lumen corpus: public LPU documents only (CLAUDE.md rule 5, SPEC §3 and §8).
+# Lumen corpus: official LPU documents (CLAUDE.md rule 5, SPEC §3 and §8).
 #
-# Every URL below opens without a login. Each one was checked for personal
-# data (student names, registration numbers) on 26 Nov 2026.
+# Two parts:
+#   1. lpu.in documents (this part). Every URL opens without a login.
+#   2. UMS-linked student policies (`origin: ums`), further down, with
+#      their own note.
+# Every file in both parts was checked for personal data (student names,
+# registration numbers) on 26 Nov 2026.
 #
 # Not included:
 #   - lpu.in/placements.php, because it names placed students with their
 #     packages (personal data)
 #   - Scribd, GitHub and other third-party copies of LPU rules, because they
 #     are unofficial and often outdated
-#   - anything inside UMS
+#   - any student's own UMS pages (marks, attendance, fees, profile, cases)
 #
 # robots.txt: lpu.in blocks generic crawlers from /downloads and /sustainable
 # but allows named AI agents everywhere. Entries under those paths are marked
@@ -16,8 +20,13 @@
 # file in a browser as data/raw/<id>.<ext> and it is used from there. The
 # public `url` is still what citations link to.
 #
+# `fetch: manual` is also used for files that must be converted by hand:
+# a legacy .doc (save as PDF in Word), a PDF inside a .zip, or a page that
+# needs a login. Save the result as data/raw/<id>.pdf (or .md).
+#
 # category: academics | exams | hostel | fees | placements | other
 # academic_year: only when the document states it.
+# origin: `ums` for UMS-linked policies; left out for lpu.in documents.
 
 # --- Academics -------------------------------------------------------------
 
@@ -224,3 +233,494 @@
   url: "https://www.lpu.in/student-services/transport.php"
   category: other
   note: "lpu.in > Student Services > Transport. Bus routes and parking."
+
+# ===========================================================================
+# Part 2: UMS-linked student policies (origin: ums)
+#
+# Added at the project owner's direction on 26 Nov 2026 (SPEC §3.2). These
+# are general rules, guidelines and policies that UMS links to for all
+# students. Each `url` opens without a login (checked 26 Nov 2026). There is
+# one exception: fee-payment-schedule, whose page needs a login, so its
+# batch-level text was copied by hand.
+#
+# ums.lpu.in and files.lpu.in robots.txt allow all agents. They also carry
+# the Cloudflare content signal `search=yes, ai-train=no`: Lumen uses these
+# files only to retrieve and cite, never to train a model.
+#
+# Not included:
+#   - placement result lists and research incentive lists (student names)
+#   - older versions where a newer one is linked: the 2023 Career Services
+#     Policy, an older copy of the credit transfer guideline, the 2011 dual
+#     degree option guideline, and duplicate copies of the Annexure 6.0
+#     candidate instructions
+#   - online (My Class) exam guidelines, which only applied while exams
+#     were held online
+#   - forms, request formats and notices from outside bodies
+#   - two DSA files UMS still lists that return 404: Rules for Cultural
+#     Clubs and Selection Process for AIU
+#
+# Unfair Means Cases (UMC): the acts that count as a UMC and their
+# consequences are in summer-term-exam-instructions (section 34.0) and the
+# other candidate instructions. No document students can open gives the
+# penalty scale or the UMC hearing and appeal procedure, so Lumen should
+# abstain on those.
+# ===========================================================================
+
+# --- UMS: Academics ---------------------------------------------------
+
+- id: attendance-late-registration
+  title: "Attendance Marking Policy for Late Registration"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Academic%20calender/Attendance_Marking_Policy_In_Case_of_Late_Registration.pdf"
+  category: academics
+  academic_year: "2018-19"
+  origin: ums
+  note: "UMS > Academic policies (Static Information)."
+
+- id: academic-honour-policy
+  title: "Policy for Award of Academic Honour (Regular Students)"
+  url: "https://ums.lpu.in/lpuums/Policy/StudentFee/S.No.%205.pdf"
+  category: academics
+  origin: ums
+  note: "UMS > Academic Honour To Regular Students."
+
+- id: change-of-program
+  title: "Guidelines for Change of Program"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Guidelines%20for%20Change%20of%20Program/Guidelines%20for%20Change%20of%20Program%20for%20students%20of%20batch%202022-23.pdf"
+  category: academics
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Guidelines for Change of Program."
+
+- id: change-of-program-freshmen-2026
+  title: "Guidelines for Change of Program for Freshmen (2026)"
+  url: "https://ums.lpu.in/lpuums/umsweb/HR/Announcement/261119113931026_1_Guidelines%20for%20Change%20of%20Program%20for%20freshmen%20students%202026.doc"
+  category: academics
+  academic_year: "2026"
+  origin: ums
+  fetch: manual
+  note: "UMS announcement, 19 Nov 2026. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+
+- id: credit-transfer
+  title: "Guidelines for Credit Transfer as an Option"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/GuidelinesfortakingCredit_Transfer_Option.pdf"
+  category: academics
+  origin: ums
+  note: "UMS > Guidelines for Credit Transfer as an Option."
+
+- id: semester-abroad-policy
+  title: "Semester/Year Abroad Policy"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Academic%20calender/Semester_Year_Abroad_Policy.pdf"
+  category: academics
+  academic_year: "2018"
+  origin: ums
+  note: "UMS > Semester/ Year Abroad Policy."
+
+- id: electives-explained
+  title: "Elective Types Explained"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Electives%20Details.pdf"
+  category: academics
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines."
+
+- id: project-courses-guidelines
+  title: "Guidelines for Project Courses (including Capstone)"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/AERC/Guidelines%20for%20project%20courses(including%20capstone)%20students.pdf"
+  category: academics
+  academic_year: "2021-22"
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > AERC."
+
+- id: dissertation-guidelines
+  title: "Guidelines for Dissertation for Master Degree Programmes"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/AERC/Guidelines%20for%20Dissertation%20for%20Master%20Degree%20Programs%20(except%20for%20M.Phil.%20Programs)%20including%20Dual%20Degree%20and%20Integrated%20Master%E2%80%99s%20degree%20Programs%20(students).pdf"
+  category: academics
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > AERC."
+
+- id: library-policy
+  title: "Library Policy"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Library%20Policy.pdf"
+  category: academics
+  origin: ums
+  note: "UMS > Library Policy / Library Rules."
+
+# --- UMS: Exams -------------------------------------------------------
+
+- id: academic-exam-rules-extract
+  title: "An Extract and Clarifications of Changes in Rules and Systems (Academic and Examination Rules)"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Academic%20calender/An%20Extract%20of%20changes%20in%20rules%20w%20e%20f%20Session%202013-14.pdf"
+  category: exams
+  academic_year: "2013-14"
+  origin: ums
+  note: "UMS links this as both \"Academic Rules\" and \"Examination Rules\". Oldest core rulebook; newer documents override it where they differ."
+
+- id: end-term-exam-instructions
+  title: "End Term Examination: Candidate Instructions (Annexure 6.0)"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/End%20Term%20Examination%20Guidelines/Annexure%206%200%20Candidate%20Instructions.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > End Term Examination Guidelines. Covers prohibited items and what is booked as an Unfair Means Case (UMC)."
+
+- id: reappear-exam-instructions
+  title: "Reappear Examination: Candidate Instructions (Annexure 6.0)"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Reappear%20Examination%20Guidelines/Annexure_6.0_Candidate_Instructions%20.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Reappear Examination Guidelines."
+
+- id: summer-term-exam-instructions
+  title: "Summer Term Examination: Candidate Instructions (Annexure 6.0)"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Summer%20Term%20ExaminationGuidelines/Annexure_6.0_Candidate_Instructions.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Summer Term Examination Guidelines. Section 34.0 is the fullest list of acts treated as an Unfair Means Case (UMC) and their consequences."
+
+- id: offline-exam-step-by-step
+  title: "Step-by-step Guidelines for Offline Examinations"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Mid%20Term%20Test%20(Thoery)%20Guidelines/Step%20by%20step%20guidelines%20for%20offline%20Examination.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Mid Term Test (Theory) Guidelines. Same guide is filed under Reappear and MBA."
+
+- id: mtt-candidate-instructions
+  title: "Mid Term Test (Theory): Candidate Instructions"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Mid%20Term%20Test%20(Thoery)%20Guidelines/updated%20MTT%20Annexure6CandidateInstructions.docx"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Mid Term Test (Theory) Guidelines."
+
+- id: mtp-candidate-guidelines
+  title: "Mid Term Practical: Candidate Guidelines"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Mid%20Term%20Test%20(Practical)%20Guidelines/updated%20MTP%20CandidateGuidelines.docx"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Mid Term Test (Practical) Guidelines."
+
+- id: etp-reappear-practical
+  title: "Instructions for End Term Practical (ETP) and Reappear Practical Examinations"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/ETP%20and%20Reappear%20Practical%20Guidelines/Guidlines%20for%20Students%20for%20ETP%20and%20Reappear%20Examination%20.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > ETP and Reappear Practical Guidelines."
+
+- id: ete-scrutiny
+  title: "Scrutiny of Answer Sheets: End Term Examination"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Scrutiny%20Guidelines/ETE%20Scrutiny_Guidelilnes/Student%20Guidelines.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Scrutiny Guidelines > ETE."
+
+- id: mtt-scrutiny
+  title: "Scrutiny of Answer Sheets: Mid Term Test"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Scrutiny%20Guidelines/MTT%20Scrutiny_Guidelilnes/Student%20Guidelines.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Scrutiny Guidelines > MTT."
+
+- id: re-evaluation-process
+  title: "Re-evaluation Process for Registration"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Re-evaluation%20Process%20for%20Registration/Re-evaluation%20Process%20for%20Registration.doc"
+  category: exams
+  origin: ums
+  fetch: manual
+  note: "UMS > Examination Instructions and Guidelines. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+
+- id: question-paper-discrepancy
+  title: "Reporting a Question Paper Discrepancy through UMS"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/Guidelines%20for%20Online%20Examination%20(My%20Class%20Platform)/Instructions%20for%20question%20paper%20discrepancy.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > Online Examination."
+
+- id: etp-code-of-conduct
+  title: "Code of Conduct for Students at Final ETP Evaluation"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/AERC/Code%20of%20conduct-student.pdf"
+  category: exams
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > AERC."
+
+- id: ca-mtt-proration-duty-leave
+  title: "Proration of Continuous Assessment and Mid Term Marks for Duty Leave"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/AERC/Guidelines%20for%20proration%20of%20CA%20and%20Mid%20term%20due%20to%20duty%20leave.pdf"
+  category: exams
+  academic_year: "2020-21"
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > AERC."
+
+# --- UMS: Hostel ------------------------------------------------------
+
+- id: hostel-residents-handbook
+  title: "Handbook for Hostel Residents (Student Version)"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/HostelHandBook/Hostel%20Residents%20Handbook%20Student%20Version.pdf"
+  category: hostel
+  academic_year: "2026-27"
+  origin: ums
+  note: "UMS > Hostel Guidelines. Lists official hostel and helpline numbers."
+
+# --- UMS: Fees --------------------------------------------------------
+
+- id: fee-deposit-instructions
+  title: "Academic Fee Deposit Schedule and Instructions (Jan–May 2027)"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Fee%20Deposit%20Instructions.pdf"
+  category: fees
+  academic_year: "2026-27"
+  origin: ums
+  note: "UMS > View Fee Payment Schedule / Guidelines."
+
+- id: fee-payment-schedule
+  title: "Fee Payment Schedule and Late Fee Slabs"
+  url: "https://studentums.lpu.in/dashboard/StudentAccounts/feepaymentschedule"
+  category: fees
+  academic_year: "2026-27"
+  origin: ums
+  fetch: manual
+  note: "UMS > Student Accounts > Fee Payment Schedule. The page needs a login, so its text was saved by hand on 26 Nov 2026."
+
+- id: state-scholarships
+  title: "Process and Guidelines for State Scholarships"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/States%20Scholarships/Process%20and%20Guidelines%20of%20all%20state%20Scholarships.doc"
+  category: fees
+  origin: ums
+  fetch: manual
+  note: "UMS > Examination Instructions and Guidelines > States Scholarships. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+
+- id: sports-scholarship-retaining
+  title: "Sports Scholarship Retaining Policy"
+  url: "https://files.lpu.in/DSA/9_Sports%20Scholarship%20Retaining%20Policy.docx"
+  category: fees
+  origin: ums
+  note: "UMS > DSA Policy View."
+
+- id: scholarship-benefits-cultural
+  title: "Scholarship Benefits for Cultural Achievements"
+  url: "https://files.lpu.in/DSA/66_Scholarship%20Benefits%20-%20Cultural.jpg"
+  category: fees
+  origin: ums
+  note: "UMS > DSA Policy View. Image, so it needs OCR."
+
+- id: scholarship-benefits-sports
+  title: "Scholarship Benefits for Sports Achievements"
+  url: "https://files.lpu.in/DSA/67_Scholarship%20Benefits%20-%20Sports.jpg"
+  category: fees
+  origin: ums
+  note: "UMS > DSA Policy View. Image, so it needs OCR."
+
+# --- UMS: Placements --------------------------------------------------
+
+- id: ojt-internship-policy
+  title: "Optional OJT/Internship Policy"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/AERC/OJT_internship_policy_2024-25.pdf"
+  category: placements
+  academic_year: "2024-25"
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > AERC."
+
+- id: career-services-enrolment
+  title: "Guidelines for Enrolment into Career Services (2024 batch onwards)"
+  url: "https://ums.lpu.in/LpuUms/UMSWEB/PlacementFilesShare/Students/Policies/Guidelines%20for%20Enrolment%20into%20Career%20Services%20for%202024%20batch%20onwards%20(sep%202023).pdf"
+  category: placements
+  academic_year: "2023-24"
+  origin: ums
+  note: "UMS > Placement Document Repository > Policies. Replaces the 2023 Career Services Policy."
+
+- id: placement-faqs
+  title: "Placement FAQs"
+  url: "https://ums.lpu.in/LpuUms/UMSWEB/PlacementFilesShare/Students/FAQs/Placement%20FAQs.docx"
+  category: placements
+  origin: ums
+  note: "UMS > Placement Document Repository > FAQs."
+
+- id: student-placement-coordinator
+  title: "Guidelines for Appointment of Student Placement Coordinators"
+  url: "https://ums.lpu.in/LpuUms/UMSWEB/PlacementFilesShare/Students/Policies/Guidelines%20for%20SPC%20Appointment%202021-22%20onwards%20(04.03.22)%20Student%20version.pdf"
+  category: placements
+  academic_year: "2021-22"
+  origin: ums
+  note: "UMS > Placement Document Repository > Policies."
+
+- id: placement-internship-benefit-plan
+  title: "Academic Benefit Plan for Placement and Internship (2026 and 2027 batches)"
+  url: "https://ums.lpu.in/lpuums/umsweb/HR/Announcement/261123135549956_1_Final%202026%20and%202027%20Batch%20Academic%20Benefit%20Plan%20for%20Placement%20and%20Internship.pdf"
+  category: placements
+  academic_year: "2026-27"
+  origin: ums
+  note: "UMS announcement, 23 Nov 2026."
+
+- id: competitive-exam-benefits
+  title: "Benefits for Clearing Competitive Exams"
+  url: "https://ums.lpu.in/lpuums/umsweb/HR/Announcement/261123135306142_1_Benefit%20to%20be%20given%20to%20the%20students%20for%20clearing%20Competitive%20Exams.pdf"
+  category: placements
+  academic_year: "2026-27"
+  origin: ums
+  note: "UMS announcement, 23 Nov 2026."
+
+# --- UMS: Other -------------------------------------------------------
+
+- id: certificates-current-students
+  title: "Applying for Academic Certificates: Current Students"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/RecordCell/Guidelines%20to%20Apply%20for%20Various%20Certificates/Guidelines%20to%20Apply%20for%20Certificates%20by%20students%20-%20Existing%20Students.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > RecordCell."
+
+- id: certificates-passout-students
+  title: "Applying for Academic Certificates: Pass-out Students"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/RecordCell/Guidelines%20to%20Apply%20for%20Various%20Certificates/Guidelines%20to%20Apply%20for%20Certificates%20by%20students%20-%20Passout%20Students.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > RecordCell."
+
+- id: duplicate-migration-certificate
+  title: "Duplicate Migration Certificate"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/RecordCell/Guidelines%20to%20Apply%20for%20Various%20Certificates/Guidelines%20to%20Apply%20for%20Duplicate%20Migration%20Certificates%20by%20students%20-%20Passout%20Students.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > RecordCell."
+
+- id: student-profile-correction
+  title: "Correction in Student Profile"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/RecordCell/Guidelines%20for%20Student%20Profile%20Updation/Guidelines%20for%20Correction%20in%20Student%20Profile.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > RecordCell."
+
+- id: educational-credential-assessment
+  title: "Educational Credential Assessment (ECA)"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/RecordCell/Guidlines%20for%20Credential%20Verification/Guidelines%20to%20Apply%20for%20Educational%20Credential%20Assessment%20(ECA).pdf"
+  category: other
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > RecordCell."
+
+- id: education-verification
+  title: "Education Verification"
+  url: "https://ums.lpu.in/LpuUms/umsweb/ExaminationPolicies/Students/RecordCell/Guidlines%20for%20Credential%20Verification/Guidlines%20for%20%20Education%20Verification.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Examination Instructions and Guidelines > RecordCell."
+
+- id: dress-code-policy
+  title: "Dress Code and Uniform Policy for Students"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Dress_Code_and_Uniform_Policy_student.zip"
+  category: other
+  origin: ums
+  fetch: manual
+  note: "UMS > Dress Code and Uniform Policy. Published inside a .zip, so the extracted PDF is saved by hand."
+
+- id: dress-code-faqs
+  title: "Dress Code and Uniform Policy: FAQs"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Dress_Code_and_Uniform_Policy_student.zip"
+  category: other
+  origin: ums
+  fetch: manual
+  note: "UMS > Dress Code and Uniform Policy. Published inside a .zip, so the extracted PDF is saved by hand."
+
+- id: security-entry-exit-brochure
+  title: "Entry/Exit, Parking, RFID and Do's and Don'ts (Division of Security)"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Student%20Information-brochure-entry-exit-parking.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Security Brochure."
+
+- id: international-students-frro-policy
+  title: "Policy for International Students: FSIS/FRRO, Passport and Exit Bonafide"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Policy_for_generation_renewal_of_FSIS_FRRO_Passport_and_for_claming_Exit_Bonafide.pdf"
+  category: other
+  academic_year: "2019"
+  origin: ums
+  note: "UMS > Policy for International Students."
+
+- id: interaction-timings
+  title: "Interaction Timings with Higher Authorities"
+  url: "https://ums.lpu.in/lpuums/Static%20Information/Interaction%20Timings%20with%20Higher%20Authorities.pdf"
+  category: other
+  origin: ums
+  note: "UMS > Interaction Timings with Higher Authorities. Names senior officials in their official roles."
+
+- id: student-organization-manual
+  title: "Manual for the Student Organization Cell"
+  url: "https://files.lpu.in/DSA/70_Department%20of%20Student%20Organization%20Manual%202023.pdf"
+  category: other
+  academic_year: "2023-24"
+  origin: ums
+  note: "UMS > DSA Policy View. Lists official staff contacts."
+
+- id: off-campus-participation
+  title: "Policy for Off-Campus Participation by Students (Revised)"
+  url: "https://files.lpu.in/DSA/52_Off%20campus%20participation%20Policy%20-%20Revised.pdf"
+  category: other
+  origin: ums
+  note: "UMS > DSA Policy View."
+
+- id: nss-policy
+  title: "LPU NSS Policy"
+  url: "https://files.lpu.in/DSA/33_LPUNSS%20Policy%20-%20Ver%201.0.pdf"
+  category: other
+  academic_year: "2016"
+  origin: ums
+  note: "UMS > DSA Policy View."
+
+- id: nss-certificate-policy
+  title: "NSS Certificate Policy"
+  url: "https://files.lpu.in/DSA/46_NSS%20Certificate%20Policy.pdf"
+  category: other
+  origin: ums
+  note: "UMS > DSA Policy View."
+
+- id: ncc-manual
+  title: "NCC Manual"
+  url: "https://files.lpu.in/DSA/18_NCC%20MANUAL.pdf"
+  category: other
+  origin: ums
+  note: "UMS > DSA Policy View."
+
+- id: sports-facilities-rules
+  title: "Sports Facilities Rules (Shanti Devi Mittal Indoor Sports Complex)"
+  url: "https://files.lpu.in/DSA/58_Shanti%20Devi%20Mittal%20Indoor%20Sports%20Complex%20-%20Facilities%20Rules%20new.pdf"
+  category: other
+  origin: ums
+  note: "UMS > DSA Policy View. Lists coach names and official numbers."
+
+- id: open-championship-policy
+  title: "Policy for Open Championship"
+  url: "https://files.lpu.in/DSA/8_Policy%20for%20Open%20Championship.docx"
+  category: other
+  origin: ums
+  note: "UMS > DSA Policy View."
+
+- id: academic-benefits-cultural
+  title: "Academic Benefits for Cultural Achievements"
+  url: "https://files.lpu.in/DSA/65_Academic%20Benefits%20-%20Cultural.jpg"
+  category: other
+  origin: ums
+  note: "UMS > DSA Policy View. Image, so it needs OCR."
+
+- id: sports-representation-selection
+  title: "Selection Criteria for University Sports Representation"
+  url: "https://files.lpu.in/DSA/10_Selection%20Criteria%20For%20University%20Sports%20Representation.doc"
+  category: other
+  origin: ums
+  fetch: manual
+  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+
+- id: sports-gear-issuing-policy
+  title: "Sports Gear Issuing Policy"
+  url: "https://files.lpu.in/DSA/11_SPORTS%20GEAR%20ISSUING%20POLICY.doc"
+  category: other
+  origin: ums
+  fetch: manual
+  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+
+- id: earn-while-you-learn-policy
+  title: "Student Employment Policy (Earn While You Learn)"
+  url: "https://files.lpu.in/DSA/43_Earn%20While%20You%20Learn%20policy.doc"
+  category: other
+  origin: ums
+  fetch: manual
+  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
+
+- id: entrepreneurship-policy
+  title: "Student Entrepreneurship Policy"
+  url: "https://files.lpu.in/DSA/3_Entrepreneurship%20Policy.doc"
+  category: other
+  origin: ums
+  fetch: manual
+  note: "UMS > DSA Policy View. Legacy .doc: save as PDF in Word to data/raw/<id>.pdf."
