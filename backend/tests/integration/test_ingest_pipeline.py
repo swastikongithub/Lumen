@@ -22,6 +22,7 @@ from app.ingest.index import ensure_collection
 from app.ingest.parse import ParsedDocument, ParseError
 from app.ingest.pipeline import Ingestor, Outcome
 from app.ingest.sources import Source
+from app.ingest.stats import collect_stats
 
 pytestmark = pytest.mark.integration
 
@@ -235,3 +236,21 @@ async def test_a_failing_source_does_not_block_the_others(
     assert "HTTP 404" in results[1].detail
     assert [d.source_id for d in await documents(db_session)] == ["exam-rules"]
     assert {p["source_id"] for p in payloads(qdrant)} == {"exam-rules"}
+
+
+async def test_stats_report_what_is_indexed(
+    ingestor: Ingestor, fetcher: FakeFetcher, qdrant: QdrantClient, db_session: AsyncSession
+) -> None:
+    fetcher.files["exam-rules"] = "rule one\nrule two"
+    fetcher.files["hostel-rules"] = "curfew at 10 pm"
+    await ingestor.run([source(), source("hostel-rules", "Hostel Rules")])
+    fetcher.files["exam-rules"] = "rule one (amended)\nrule two\nrule three"
+    await ingestor.run([source()])
+
+    stats = await collect_stats(db_session, qdrant, COLLECTION)
+
+    assert (stats.corpus_version, stats.active_documents, stats.superseded_documents) == (2, 2, 1)
+    assert stats.chunks == 4
+    assert (stats.avg_chunk_tokens, stats.max_chunk_tokens) == (2, 2)
+    assert stats.documents_by_category == {"exams": 2}
+    assert stats.chunks_by_origin == {"lpu.in": 4}
