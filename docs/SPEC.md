@@ -8,7 +8,7 @@
 
 ## 1. One-line pitch
 
-A chat assistant, on the web and as an **Android app on Google Play**, that answers LPU students' questions about academic rules, exam and attendance policies, hostel rules and placement policy **only from official public documents**, with **page-level citations**, an honest "I don't know" when the answer isn't in the documents, and a **measured evaluation suite** that proves how well retrieval and answers perform.
+A chat assistant, on the web and as an **Android app on Google Play**, that answers LPU students' questions about academic rules, exam and attendance policies, hostel rules and placement policy **only from official LPU documents**, with **page-level citations**, an honest "I don't know" when the answer isn't in the documents, and a **measured evaluation suite** that proves how well retrieval and answers perform.
 
 ## 2. Why this project (what it signals to recruiters)
 
@@ -27,7 +27,9 @@ Most student RAG projects are "chat with a PDF" demos. Lumen is built to look li
 ## 3. Scope
 
 ### 3.1 In scope (v1)
-- Ingest 15–30 **publicly available** LPU documents (PDF/HTML) such as academic regulations, examination and attendance policies, hostel rules, fee/refund policy and placement policy, whichever are actually published publicly.
+- Ingest official LPU student documents (PDF, DOCX, HTML, images) such as academic regulations, examination and attendance policies, hostel rules, fee/refund policy and placement policy. Each is listed in `data/sources.yaml` and opens without a login, unless §3.2 says otherwise. There are two kinds:
+  - documents published on lpu.in;
+  - general student policies and guidelines that UMS links to, marked `origin: ums` (§3.2).
 - Chat with streaming answers, inline citations `[1] [2]`, and a sources panel (document title, page, link).
 - Multi-turn follow-ups ("what about for hostellers?") via query rewriting.
 - Filter by category (Academics, Exams, Hostel, Fees, Placements).
@@ -38,7 +40,13 @@ Most student RAG projects are "chat with a PDF" demos. Lumen is built to look li
 - **Android app** built with Capacitor from the same SvelteKit build, published on Google Play, with app-only features: saved answers that work offline, native share, back-button handling, offline banner and an update-required check (§12.1).
 
 ### 3.2 Out of scope (v1)
-- No login (anonymous sessions only). No UMS integration or scraping of anything behind a login.
+- No login (anonymous sessions only).
+- No UMS integration: Lumen never logs in to UMS and never reads a student's own pages (marks, attendance, fees, profile, case records).
+- **UMS-linked policies** were added at the project owner's direction (Nov 2026).
+  - These are general documents that UMS links to. Their files open without a login.
+  - One exception: the fee payment schedule page needs a login. Its batch-level text was copied by hand.
+  - They carry `origin: ums`, so a deployment can include or exclude them as a group.
+  - Before public launch, decide whether they ship. If they do, the disclaimer (§12) and the Play listing should say "official LPU documents" instead of "public".
 - No user file uploads.
 - No documents containing personal data (e.g., placement result lists with names or registration numbers).
 - No Hindi/Hinglish (planned as a stretch goal, §15).
@@ -241,7 +249,7 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
 | id | uuid pk | |
 | source_id | text | the stable `id` from `data/sources.yaml`; unique with `version`; at most one `active` row per `source_id` |
 | title | text | |
-| source_url | text | official public URL |
+| source_url | text | official URL (lpu.in or UMS-linked, §3.2) |
 | category | enum | academics, exams, hostel, fees, placements, other |
 | academic_year | text null | e.g. "2025-26" when the document states it |
 | content_hash | char(64) | sha256 of raw file; skip re-ingest if unchanged |
@@ -277,8 +285,8 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
 
 **`kb_chunks`**
 - Named vectors: `dense` (384, cosine) and sparse `bm25` with `modifier = IDF`.
-- Payload: `chunk_id`, `document_id`, `title`, `source_url`, `category`, `academic_year`, `page_start`, `page_end`, `headings` (list), `text`, `corpus_version`, `embed_model`.
-- Payload indexes: `category`, `document_id`, `academic_year`, `corpus_version`.
+- Payload: `chunk_id`, `document_id`, `title`, `source_url`, `category`, `academic_year`, `origin` (`lpu.in` or `ums`, §3.2), `page_start`, `page_end`, `headings` (list), `text`, `corpus_version`, `embed_model`.
+- Payload indexes: `category`, `document_id`, `academic_year`, `origin`, `corpus_version`.
 - Point ID: deterministic UUIDv5 of `document_id + chunk_index + content_hash` so re-ingestion is idempotent.
 
 **`answer_cache`**
@@ -299,7 +307,7 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
      academic_year: "2025-26"
      note: "Publicly linked from the official website"
    ```
-   The fetcher identifies itself with its own User-Agent and obeys `robots.txt` (RFC 9309). An entry marked `fetch: manual` (a public page under a path that robots.txt closes to generic crawlers) is never downloaded automatically. Someone saves it in a browser as `data/raw/<id>.<ext>`, and the ingester reads it from there. Citations still link to the public `url`.
+   The fetcher identifies itself with its own User-Agent and obeys `robots.txt` (RFC 9309). An entry marked `fetch: manual` (a public page under a path that robots.txt closes to generic crawlers) is never downloaded automatically. Someone saves it in a browser as `data/raw/<id>.<ext>`, and the ingester reads it from there. Citations still link to the public `url`. The same applies to files no parser handles directly (legacy `.doc`, a PDF inside a `.zip`): they are converted by hand and saved as `data/raw/<id>.pdf`. An optional `origin: ums` marks a UMS-linked policy (§3.2); entries without it are `lpu.in`. The ingester copies it into each chunk's payload (§7.2), so retrieval can include or exclude these documents as a group.
 2. **Parse:** Docling `DocumentConverter` → `DoclingDocument` (layout, tables, headings, page numbers).
 3. **Chunk:** Docling `HybridChunker` with the embedding model's tokenizer, `max_tokens` from config (default 384; ablate 256/384/512). Use `chunker.contextualize(chunk)` (heading path + text) as the **embedded** text; keep the raw chunk text for display.
 4. **Embed:** FastEmbed `bge-small-en-v1.5` in batches of 64.
@@ -494,7 +502,7 @@ The app is the same SvelteKit build (`npm run build` → `build/`) packaged by C
 
 ## 13. Security, privacy and abuse
 
-- Index only public documents; record the source URL for each. Never index documents containing personal data.
+- Index only documents listed in `data/sources.yaml` (lpu.in documents and UMS-linked policies, §3.2); record the source URL for each. Never index documents containing personal data.
 - Treat retrieved text as data: the system prompt says so, and context blocks are wrapped and numbered. Note prompt injection as a known risk in the README.
 - Input length cap, rate limits, max 2 Cloud Run instances (caps cost too).
 - Secrets in Cloud Run environment variables or Secret Manager; `.env` gitignored; `.env.example` committed.
@@ -513,7 +521,7 @@ The app is the same SvelteKit build (`npm run build` → `build/`) packaged by C
 | Phase | Deliverable | Est. |
 |---|---|---|
 | **0. Setup** | Repo, uv project, FastAPI skeleton with `/health`, docker-compose (Qdrant + Postgres), Alembic init, Ruff + pytest, `ci.yml` (lint + tests) | 1–2 d |
-| **1. Ingestion** | `sources.yaml` with 15+ real public docs, fetch → Docling → HybridChunker → FastEmbed → Qdrant (dense + BM25), idempotent re-runs, `lumen stats` | 3 d |
+| **1. Ingestion** | `sources.yaml` with 15+ real docs, fetch → Docling → HybridChunker → FastEmbed → Qdrant (dense + BM25), idempotent re-runs, `lumen stats` | 3 d |
 | **2. Retrieval + generation** | Hybrid query + RRF, re-ranker, abstention threshold, prompt, LiteLLM Router with fallbacks, SSE `/api/v1/chat`, persistence | 3 d |
 | **3. Evaluation** | 60-question golden set, retrieval eval, RAGAS answer eval, ablation report, tune τ and chunk size, CI gate | 3 d |
 | **4. Frontend** | SvelteKit chat UI with streaming, citation chips, sources panel, feedback, `/sources` page | 3 d |
