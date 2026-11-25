@@ -1,0 +1,65 @@
+# Lint + tests on every push to main and every pull request.
+# Phase 3 adds the retrieval-eval quality gate (SPEC §11.5) as a second job.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (lint + tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      # Same image as docker-compose.yml. The integration tests rebuild the schema
+      # from the Alembic migrations and fail (not skip) here because CI=true.
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: lumen
+          POSTGRES_PASSWORD: lumen
+          POSTGRES_DB: lumen_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lumen -d lumen_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://lumen:lumen@localhost:5432/lumen_test
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # setup-uv publishes no floating major tag (no "v10"), so pin the exact release.
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Install dependencies (locked)
+        run: uv sync --all-groups --locked
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Tests (unit + integration)
+        run: uv run pytest
