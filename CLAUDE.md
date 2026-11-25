@@ -52,7 +52,7 @@ uv run pytest
 uv run ruff check . && uv run ruff format --check .
 
 # ingestion and evals
-uv run lumen ingest --all
+uv run lumen ingest --all          # or --id <source-id>; --force re-chunks; --offline uses data/raw only
 uv run lumen stats
 uv run python ../evals/retrieval_eval.py
 
