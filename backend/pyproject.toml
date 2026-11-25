@@ -10,6 +10,7 @@ dependencies = [
     "alembic>=1.20.1",
     "asyncpg>=0.32.0",
     "fastapi>=0.165.0",
+    "fastembed>=0.9.1",
     "pydantic-settings>=2.16.3",
     "qdrant-client>=1.20.0",
     "sqlalchemy[asyncio]>=2.1.9",
@@ -19,7 +20,10 @@ dependencies = [
 [dependency-groups]
 # Offline ingestion only (Phase 1). Docling must never move into [project].
 ingest = [
+    "beautifulsoup4>=4.15.0",
     "docling>=2.153.0",
+    "pyyaml>=6.0.4",
+    "typer>=0.27.3",
 ]
 # Evaluation scripts (Phase 3).
 eval = []
