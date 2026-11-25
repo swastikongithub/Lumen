@@ -1,0 +1,20 @@
+# Copy to data/sources.yaml and replace with real, PUBLIC document links.
+# Rules (SPEC §3 and §8):
+#   - only documents published publicly (no UMS / login-only pages)
+#   - no documents containing personal data (names, registration numbers)
+#   - one entry per document; `id` must be unique and stable
+#   - category: academics | exams | hostel | fees | placements | other
+
+- id: exam-policy
+  title: "Examination Policy"
+  url: "https://<official-public-url-to-the-pdf>"
+  category: exams
+  academic_year: "[e.g. 2025-26]"
+  note: "Where you found the public link"
+
+- id: attendance-guidelines
+  title: "Attendance Guidelines"
+  url: "https://<official-public-url-to-the-pdf>"
+  category: academics
+  academic_year: "[e.g. 2025-26]"
+  note: "Where you found the public link"
