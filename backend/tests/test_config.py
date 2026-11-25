@@ -1,7 +1,29 @@
+import re
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
-from app.config import Settings
+from app.config import REPO_ROOT, Settings
+
+ENV_EXAMPLE = Path(__file__).resolve().parents[1] / ".env.example"
+
+
+def test_env_example_lists_every_setting() -> None:
+    """CLAUDE.md rule 6: .env.example documents every setting in app/config.py."""
+    text = ENV_EXAMPLE.read_text(encoding="utf-8")
+    documented = set(re.findall(r"^([A-Z][A-Z0-9_]*)=", text, flags=re.MULTILINE))
+
+    missing = {name.upper() for name in Settings.model_fields} - documented
+
+    assert missing == set()
+
+
+def test_ingestion_paths_default_to_the_repo_data_folder() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.sources_path == REPO_ROOT / "data" / "sources.yaml"
+    assert settings.raw_dir == REPO_ROOT / "data" / "raw"
 
 
 def test_defaults_match_local_docker_compose() -> None:
