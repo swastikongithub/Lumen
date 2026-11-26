@@ -8,7 +8,7 @@ The ID is only checked for UUID syntax. It identifies a device, it does not auth
 
 import uuid
 from dataclasses import dataclass
-from typing import Annotated, NoReturn
+from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, Request, status
 
@@ -67,14 +67,6 @@ def get_app_settings(request: Request) -> Settings:
 
 CurrentSession = Annotated[ClientSession, Depends(require_session)]
 AppSettings = Annotated[Settings, Depends(get_app_settings)]
-
-
-def not_implemented(phase: int) -> NoReturn:
-    """Placeholder body for routes whose contract exists but whose logic comes later."""
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail=f"Not implemented yet (SPEC §14, Phase {phase})",
-    )
 
 
 def _bad_request(message: str) -> HTTPException:
