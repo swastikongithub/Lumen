@@ -1,9 +1,9 @@
 """Data retention (SPEC §13): what students send is kept for RETENTION_DAYS (30), then deleted.
 
 The /privacy page promises this, so the API enforces it itself instead of relying on a
-scheduler: it purges at startup and then every RETENTION_CHECK_HOURS while it runs. Cloud
-Run scales to zero, so instances start often; with two instances both may purge at once,
-which is harmless because deleting is idempotent.
+scheduler: it purges a minute after startup (so a cold start is not slowed) and then every
+RETENTION_CHECK_HOURS while it runs. Cloud Run scales to zero, so instances start often;
+with two instances both may purge at once, which is harmless because deleting is idempotent.
 
 What goes:
 - messages older than the cutoff, with their feedback (ON DELETE CASCADE);
@@ -77,8 +77,10 @@ async def run_retention(
     cache: AnswerCache | None,
     days: int,
     every_hours: float,
+    first_delay_seconds: float = 60,
 ) -> None:
-    """Purge now, then every `every_hours`, until cancelled (at shutdown)."""
+    """Purge after `first_delay_seconds`, then every `every_hours`, until cancelled."""
+    await asyncio.sleep(first_delay_seconds)
     while True:
         await purge_once(sessionmaker, cache, days)
         await asyncio.sleep(every_hours * 3600)
