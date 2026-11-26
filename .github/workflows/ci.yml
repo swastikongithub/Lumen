@@ -1,5 +1,5 @@
-# Lint + tests on every push to main and every pull request.
-# Phase 3 adds the retrieval-eval quality gate (SPEC §11.5) as a second job.
+# Lint + tests, and the retrieval-eval quality gate (SPEC §11.5), on every push to main
+# and every pull request.
 name: CI
 
 on:
@@ -56,10 +56,62 @@ jobs:
         run: uv sync --all-groups --locked
 
       - name: Ruff lint
-        run: uv run ruff check .
+        run: uv run ruff check . ../evals
 
       - name: Ruff format check
-        run: uv run ruff format --check .
+        run: uv run ruff format --check . ../evals
 
       - name: Tests (unit + integration)
         run: uv run pytest
+
+  retrieval-eval:
+    name: Retrieval eval (quality gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      # Same image as docker-compose.yml. The fixture is loaded into a scratch collection.
+      qdrant:
+        image: qdrant/qdrant:v1.20.2
+        ports:
+          - 6333:6333
+
+    env:
+      QDRANT_URL: http://localhost:6333
+      # The embedding and re-ranking ONNX models (~200 MB), cached between runs.
+      FASTEMBED_CACHE_PATH: ${{ github.workspace }}/.cache/fastembed
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.4.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      # API dependencies only: the gate needs no Docling, RAGAS or test tools.
+      - name: Install dependencies (locked)
+        run: uv sync --locked --no-default-groups
+
+      - name: Cache FastEmbed models
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.cache/fastembed
+          key: fastembed-${{ hashFiles('backend/app/config.py') }}
+
+      - name: Wait for Qdrant
+        run: |
+          for attempt in $(seq 30); do
+            curl -sf http://localhost:6333/readyz && exit 0
+            sleep 2
+          done
+          echo "Qdrant did not become ready" && exit 1
+
+      # Fails if Hit@5 or MRR@10 drops more than 3 points below evals/baseline.json.
+      - name: Retrieval eval against the frozen fixture
+        run: >-
+          uv run --no-default-groups python ../evals/retrieval_eval.py
+          --fixture ../evals/fixtures/chunks.jsonl --check
