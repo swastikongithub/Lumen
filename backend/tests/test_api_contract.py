@@ -149,3 +149,17 @@ def test_conversation_id_must_be_a_uuid(
 ) -> None:
     response = client.get("/api/v1/conversations/123", headers=session_headers)
     assert response.status_code == 422
+
+
+def test_admin_stats_exists_but_is_not_in_the_public_contract(
+    app: FastAPI, client: TestClient
+) -> None:
+    assert "/admin/stats" not in app.openapi()["paths"]
+    # Without ADMIN_API_KEY it answers 404 like an unknown path.
+    assert client.get("/admin/stats", headers={"X-Admin-Key": "guess"}).status_code == 404
+
+
+def test_the_chat_contract_lists_the_rate_limit_response(app: FastAPI) -> None:
+    responses = app.openapi()["paths"]["/api/v1/chat"]["post"]["responses"]
+
+    assert {"200", "404", "429"} <= set(responses)
