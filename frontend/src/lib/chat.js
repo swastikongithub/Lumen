@@ -13,14 +13,19 @@
 import { get, writable } from 'svelte/store';
 import * as defaultApi from './api.js';
 import * as defaultSession from './session.js';
-import { busyUntil } from './stores.js';
+import { busyReason, busyUntil } from './stores.js';
 
 /** Seconds to wait when a 429 comes without Retry-After. */
 const DEFAULT_RETRY_AFTER = 30;
 
+/** Error codes that start the busy countdown (BusyBanner) and hold the input until it ends. */
+const WAIT_CODES = new Set(['rate_limited', 'too_many_requests']);
+
 /** What to tell the student when an answer fails, by error code. */
 const ERROR_TEXT = {
 	rate_limited: 'Lumen is busy right now. Try again when the countdown ends.',
+	too_many_requests:
+		'Too many questions from this device or network. Try again when the countdown ends.',
 	unavailable: "Lumen can't answer right now. Please try again in a few minutes.",
 	network: "Couldn't reach Lumen. Check your connection and try again.",
 	interrupted: 'The answer was cut off. Please try again.'
@@ -67,7 +72,8 @@ export function createChat({ api = defaultApi, session = defaultSession, now = D
 	/** @param {string} key @param {string} code @param {number} [retryAfter] */
 	function fail(key, code, retryAfter) {
 		update(key, { status: 'error', error: { code, retryAfter: retryAfter ?? null } });
-		if (code === 'rate_limited') {
+		if (WAIT_CODES.has(code)) {
+			busyReason.set(code);
 			busyUntil.set(now() + (retryAfter ?? DEFAULT_RETRY_AFTER) * 1000);
 		}
 	}
