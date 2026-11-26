@@ -31,7 +31,9 @@ ingest = [
     "typer>=0.27.3",
 ]
 # Evaluation scripts (Phase 3).
-eval = []
+eval = [
+    "ragas==0.4.4",
+]
 dev = [
     "httpx2>=2.16.2",
     "pytest>=9.2.0",
