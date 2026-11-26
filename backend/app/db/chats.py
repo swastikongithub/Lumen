@@ -75,6 +75,21 @@ async def conversation_messages(db: AsyncSession, conversation_id: uuid.UUID) ->
     return list(result)
 
 
+async def recent_messages(
+    db: AsyncSession, conversation_id: uuid.UUID, limit: int
+) -> list[Message]:
+    """The conversation's last `limit` messages, oldest first (the follow-up rewrite's input)."""
+    if limit <= 0:
+        return []
+    result = await db.scalars(
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.desc(), Message.id.desc())
+        .limit(limit)
+    )
+    return list(reversed(list(result)))
+
+
 async def find_answer(db: AsyncSession, session_id: str, message_id: uuid.UUID) -> Message | None:
     """An assistant message in one of this session's conversations, else None."""
     return await db.scalar(
