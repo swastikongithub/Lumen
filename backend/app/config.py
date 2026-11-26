@@ -47,6 +47,33 @@ class Settings(BaseSettings):
     # Pause between two downloads from the same host.
     fetch_delay_seconds: float = Field(default=1.0, ge=0)
 
+    # Retrieval (SPEC §9 step 4): dense + BM25 candidates fused with RRF.
+    retrieve_dense_limit: int = Field(default=30, gt=0)
+    retrieve_sparse_limit: int = Field(default=30, gt=0)
+    retrieve_fused_limit: int = Field(default=20, gt=0)
+    # Document groups answers may come from (SPEC §3.2). Comma-separated in the environment.
+    retrieval_origins: Annotated[list[str], NoDecode] = ["lpu.in", "ums"]
+
+    # Re-ranking and abstention (SPEC §9 steps 5-6).
+    rerank_model: str = "Xenova/ms-marco-MiniLM-L-12-v2"
+    rerank_top_n: int = Field(default=5, gt=0)
+    # τ, compared with the best cross-encoder score (a raw logit, so it can be negative).
+    abstain_threshold: float = 0.0
+    abstain_sources: int = Field(default=3, ge=0)
+
+    # Generation (SPEC §9 step 7, §9.2). Model ids are LiteLLM's "<provider>/<model>".
+    groq_api_key: SecretStr | None = None
+    gemini_api_key: SecretStr | None = None
+    llm_primary_model: str = "groq/openai/gpt-oss-120b"
+    llm_secondary_model: str = "groq/openai/gpt-oss-20b"
+    llm_fallback_model: str = "gemini/gemini-3.5-flash"
+    llm_reasoning_effort: Literal["low", "medium", "high"] | None = "low"
+    context_max_tokens: int = Field(default=2000, gt=0)
+    answer_max_tokens: int = Field(default=400, gt=0)
+    llm_temperature: float = Field(default=0.1, ge=0, le=2)
+    llm_timeout_seconds: float = Field(default=30.0, gt=0)
+    llm_cooldown_seconds: int = Field(default=60, gt=0)
+
     # Browser origins allowed to call the API (SPEC §10). Comma-separated in the environment.
     # http://localhost:5173 = Vite dev server, https://localhost = Capacitor Android WebView.
     cors_origins: Annotated[list[str], NoDecode] = [
@@ -62,11 +89,11 @@ class Settings(BaseSettings):
     # Per-dependency timeout for GET /ready.
     ready_timeout_seconds: float = Field(default=2.0, gt=0)
 
-    @field_validator("cors_origins", mode="before")
+    @field_validator("cors_origins", "retrieval_origins", mode="before")
     @classmethod
     def split_comma_separated(cls, value: object) -> object:
         if isinstance(value, str):
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
+            return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
 
