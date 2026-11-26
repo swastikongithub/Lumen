@@ -1,7 +1,8 @@
 """GET /admin/stats (SPEC §10): usage numbers for the operator, behind X-Admin-Key.
 
-Outside /api/v1 like the health probes: it is not part of the public API, and browsers
-cannot call it cross-origin because CORS does not allow the X-Admin-Key header.
+Outside /api/v1 like the health probes: it is not part of the public API, so it is also
+left out of the OpenAPI document (no reason to advertise it). Browsers cannot call it
+cross-origin because CORS does not allow the X-Admin-Key header.
 
 The key is compared in constant time (hmac.compare_digest), so response timing reveals
 nothing about how much of a guess was right. Without ADMIN_API_KEY the endpoint answers
@@ -24,7 +25,7 @@ from app.db.stats import usage_stats
 # Messages are kept for at most 30 days (app/db/retention.py), so a longer window adds nothing.
 MAX_DAYS = 30
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/admin", tags=["admin"], include_in_schema=False)
 
 
 def require_admin_key(
