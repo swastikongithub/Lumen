@@ -1,7 +1,12 @@
 """Stand-ins for the pipeline's parts, so tests need no models, Qdrant or LLM."""
 
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Iterator, Sequence
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from typing import Any
 
+from app.observability import Tracer
+from app.rag.cache import CachedAnswer, normalize
 from app.rag.generator import GenerationInfo, LlmBusyError
 from app.rag.retriever import RetrievedChunk
 
@@ -102,3 +107,64 @@ class FakeGenerator:
 
 def busy_generator(retry_after: int = 30) -> FakeGenerator:
     return FakeGenerator(error=LlmBusyError(retry_after))
+
+
+class FakeCache:
+    """The answer cache as a dict: a hit needs the same normalised question, category and
+    corpus version (the real one also matches similar questions)."""
+
+    def __init__(self) -> None:
+        self.entries: dict[tuple[str, str | None, int], CachedAnswer] = {}
+        self.lookups: list[tuple[str, str | None, int]] = []
+
+    async def lookup(
+        self, question: str, category: str | None, corpus_version: int
+    ) -> CachedAnswer | None:
+        self.lookups.append((question, category, corpus_version))
+        return self.entries.get((normalize(question), category, corpus_version))
+
+    async def store(
+        self,
+        question: str,
+        category: str | None,
+        corpus_version: int,
+        content: str,
+        citations: list[dict[str, Any]],
+    ) -> None:
+        key = (normalize(question), category, corpus_version)
+        self.entries[key] = CachedAnswer(content=content, citations=citations, score=1.0)
+
+
+@dataclass
+class FakeSpan:
+    name: str
+    input: Any = None
+    fields: dict[str, Any] = field(default_factory=dict)
+    trace_id: str | None = "trace-1"
+
+    def update(self, **fields: Any) -> None:
+        self.fields.update(fields)
+
+
+class FakeTracer(Tracer):
+    """Records the spans the pipeline opens, in order."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.spans: list[FakeSpan] = []
+
+    @contextmanager
+    def trace(self, name: str, *, session_id: str, input: Any = None) -> Iterator[FakeSpan]:
+        span = FakeSpan(name, input, {"session_id": session_id})
+        self.spans.append(span)
+        yield span
+
+    @contextmanager
+    def span(self, name: str, *, input: Any = None, as_type: str = "span") -> Iterator[FakeSpan]:
+        span = FakeSpan(name, input)
+        self.spans.append(span)
+        yield span
+
+    @property
+    def names(self) -> list[str]:
+        return [span.name for span in self.spans]
