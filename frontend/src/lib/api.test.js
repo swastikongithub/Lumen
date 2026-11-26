@@ -164,6 +164,37 @@ describe('streamChat', () => {
 		});
 	});
 
+	it("throws too_many_requests with the body's retry_after for Lumen's own limit", async () => {
+		const body = {
+			detail: 'Too many questions from this device or network. Try again later.',
+			code: 'too_many_requests',
+			retry_after: 42
+		};
+		mockFetch(JSON.stringify(body), { status: 429, headers: { 'Retry-After': '41' } });
+		await expect(collect(streamChat({ message: 'Hi' }))).rejects.toMatchObject({
+			code: 'too_many_requests',
+			status: 429,
+			retryAfter: 42,
+			message: body.detail
+		});
+	});
+
+	it('falls back to Retry-After when the body has no usable wait', async () => {
+		const body = JSON.stringify({ code: 'too_many_requests', retry_after: 'soon' });
+		mockFetch(body, { status: 429, headers: { 'Retry-After': '7' } });
+		await expect(collect(streamChat({ message: 'Hi' }))).rejects.toMatchObject({
+			code: 'too_many_requests',
+			retryAfter: 7
+		});
+	});
+
+	it('leaves retryAfter unset for a 429 with no wait at all', async () => {
+		mockFetch('<html>Too Many Requests</html>', { status: 429 });
+		const error = await collect(streamChat({ message: 'Hi' })).catch((e) => e);
+		expect(error).toMatchObject({ code: 'rate_limited', status: 429 });
+		expect(error.retryAfter).toBeUndefined();
+	});
+
 	it('throws network when the server cannot be reached', async () => {
 		vi.stubGlobal(
 			'fetch',
