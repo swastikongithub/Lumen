@@ -54,7 +54,12 @@ uv run ruff check . && uv run ruff format --check .
 # ingestion and evals
 uv run lumen ingest --all          # or --id <source-id>; --force re-chunks; --offline uses data/raw only
 uv run lumen stats
-uv run python ../evals/retrieval_eval.py
+uv run python ../evals/retrieval_eval.py                       # Hit@5, Recall@5, MRR@10
+uv run python ../evals/retrieval_eval.py --fixture ../evals/fixtures/chunks.jsonl --check   # CI gate
+uv run python ../evals/ablations.py --chunk-sizes 256 384 512 --build   # reports/ablation.md
+uv run python ../evals/answer_eval.py             # needs LLM keys; --no-ragas skips the judge
+uv run python ../evals/export_fixtures.py         # refresh the CI fixture after re-ingesting
+uv run ruff check . ../evals && uv run ruff format --check . ../evals
 
 # frontend
 cd frontend
