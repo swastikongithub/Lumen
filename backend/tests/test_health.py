@@ -1,9 +1,12 @@
 import asyncio
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from starlette.datastructures import State
 
-from app.api.health import readiness_checks
+from app.api.health import check_models_loaded, readiness_checks
+from tests.conftest import StubBackend
 
 
 async def passing_check() -> None:
@@ -67,3 +70,13 @@ def test_lifespan_creates_and_closes_shared_clients(app: FastAPI) -> None:
         assert app.state.engine is not None
         assert app.state.sessionmaker is not None
         assert app.state.qdrant is not None
+        assert isinstance(app.state.pipeline, StubBackend)
+
+
+async def test_models_check_fails_until_the_pipeline_is_loaded() -> None:
+    state = State()
+    with pytest.raises(RuntimeError, match="models not loaded"):
+        await check_models_loaded(state)
+
+    state.pipeline = object()
+    await check_models_loaded(state)
