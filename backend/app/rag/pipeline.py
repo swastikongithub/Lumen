@@ -16,6 +16,9 @@ from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Protocol
 
+from qdrant_client import AsyncQdrantClient
+
+from app.config import Settings
 from app.rag.citations import (
     UNVERIFIED_NOTICE,
     citations_for,
@@ -23,10 +26,15 @@ from app.rag.citations import (
     closest_sources,
     is_not_found,
 )
-from app.rag.generator import GenerationInfo, Generator, LlmUnavailableError
+from app.rag.generator import (
+    GenerationInfo,
+    Generator,
+    LiteLLMGenerator,
+    LlmUnavailableError,
+)
 from app.rag.prompts import NOT_FOUND_ANSWER, build_messages, select_context
-from app.rag.reranker import Scorer, rerank
-from app.rag.retriever import RetrievedChunk
+from app.rag.reranker import CrossEncoderScorer, Scorer, rerank
+from app.rag.retriever import HybridRetriever, QueryEmbedder, RetrievedChunk
 
 
 class Retriever(Protocol):
@@ -124,3 +132,26 @@ class RagPipeline:
             tokens_out=info.tokens_out,
             best_score=best_score,
         )
+
+
+def build_pipeline(settings: Settings, qdrant: AsyncQdrantClient) -> RagPipeline:
+    """The production pipeline. Loads the embedding and re-ranking ONNX models, which
+    takes a few seconds (and downloads them on first run), so call it once at startup."""
+    embedder = QueryEmbedder(settings.embed_model)
+    retriever = HybridRetriever(
+        qdrant,
+        settings.qdrant_collection,
+        embedder.embed,
+        dense_limit=settings.retrieve_dense_limit,
+        sparse_limit=settings.retrieve_sparse_limit,
+        fused_limit=settings.retrieve_fused_limit,
+        origins=settings.retrieval_origins,
+    )
+    config = PipelineConfig(
+        rerank_top_n=settings.rerank_top_n,
+        abstain_threshold=settings.abstain_threshold,
+        abstain_sources=settings.abstain_sources,
+        context_max_tokens=settings.context_max_tokens,
+    )
+    scorer = CrossEncoderScorer(settings.rerank_model)
+    return RagPipeline(retriever, scorer, LiteLLMGenerator.from_settings(settings), config)
