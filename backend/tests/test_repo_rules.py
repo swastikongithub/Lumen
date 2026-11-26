@@ -56,11 +56,13 @@ def test_api_image_dependencies_exclude_docling_and_frameworks() -> None:
     assert offenders == []
 
 
-def test_the_api_process_never_imports_docling() -> None:
-    """Rule 3 at runtime: importing the API must not pull in Docling, even indirectly."""
+def test_the_api_process_never_imports_docling_or_eval_tools() -> None:
+    """Rules 2 and 3 at runtime: importing the API must not pull in Docling, or the eval
+    group's RAGAS and the LangChain packages it depends on, even indirectly."""
+    banned = ("docling", "docling_core", "ragas", "langchain", "langchain_core", "instructor")
     code = (
         "import sys, app.main; "
-        "found = sorted(m for m in sys.modules if m.split('.')[0] in ('docling', 'docling_core')); "
+        f"found = sorted(m for m in sys.modules if m.split('.')[0] in {banned!r}); "
         "print(found); sys.exit(1 if found else 0)"
     )
     result = subprocess.run(
