@@ -35,7 +35,7 @@
 			dialog.showModal();
 			sourceIndex.load();
 			tick().then(() =>
-				dialog?.querySelector('article.selected')?.scrollIntoView({ block: 'nearest' })
+				dialog?.querySelector('article.selected')?.scrollIntoView({ block: 'start' })
 			);
 		} else if (!open && dialog.open) {
 			dialog.close();
