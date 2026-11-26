@@ -79,6 +79,8 @@ filterwarnings = [
     # Pydantic notes about TypedDicts inside LiteLLM (third-party code), not ours.
     "ignore:.*are using the `ReadOnly` qualifier:UserWarning",
     "ignore:Item .* is using the `ReadOnly` qualifier:UserWarning",
+    # Raised when RAGAS imports langchain-community (third-party code, eval group only).
+    "ignore:`langchain-community` is being sunset:DeprecationWarning",
 ]
 markers = [
     "integration: needs Postgres from docker compose (skipped locally if it is down, fails in CI)",
