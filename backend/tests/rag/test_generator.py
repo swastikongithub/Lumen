@@ -84,6 +84,27 @@ async def test_no_configured_model_raises_unavailable() -> None:
         await collect(gen)
 
 
+async def test_complete_returns_the_whole_reply() -> None:
+    gen = generator(deployment("primary", "groq/openai/gpt-oss-120b", "What is the fee?"))
+
+    assert await gen.complete(MESSAGES, max_tokens=50) == "What is the fee?"
+
+
+async def test_complete_falls_back_and_maps_errors_like_stream() -> None:
+    fallback = generator(
+        deployment("primary", "groq/openai/gpt-oss-120b", RATE_LIMITED),
+        deployment("secondary", "groq/openai/gpt-oss-20b", "From the second model."),
+    )
+    busy = generator(deployment("primary", "groq/openai/gpt-oss-120b", RATE_LIMITED))
+    unconfigured = LiteLLMGenerator(None, max_tokens=400, temperature=0.1, default_retry_after=60)
+
+    assert await fallback.complete(MESSAGES, max_tokens=50) == "From the second model."
+    with pytest.raises(LlmBusyError):
+        await busy.complete(MESSAGES, max_tokens=50)
+    with pytest.raises(LlmUnavailableError):
+        await unconfigured.complete(MESSAGES, max_tokens=50)
+
+
 def test_only_models_with_a_provider_key_join_the_chain() -> None:
     settings = Settings(_env_file=None, groq_api_key="groq-secret", gemini_api_key=None)
 
