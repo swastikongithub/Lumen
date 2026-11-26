@@ -51,6 +51,9 @@ uv run uvicorn app.main:app --reload
 uv run pytest
 uv run ruff check . && uv run ruff format --check .
 
+# usage numbers (needs ADMIN_API_KEY in backend/.env; without it the endpoint is a 404)
+curl -H "X-Admin-Key: $ADMIN_API_KEY" "http://localhost:8000/admin/stats?days=7"
+
 # ingestion and evals
 uv run lumen ingest --all          # or --id <source-id>; --force re-chunks; --offline uses data/raw only
 uv run lumen stats
