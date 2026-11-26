@@ -336,7 +336,7 @@ uv run lumen stats          # docs, chunks, avg chunk tokens, corpus_version
 | 3. Cache | Look up `answer_cache`; on hit, stream the cached answer and citations | threshold 0.95 |
 | 4. Retrieve | Qdrant Query API: `prefetch` dense (limit 30) + BM25 (limit 30) → RRF fusion → top 20, with optional `category` filter and the deployment's `origin` groups (§3.2). Only active documents are searched: ingestion deletes a superseded version's points (§8 step 6), so no `status` filter is needed | k_dense = k_sparse = 30 |
 | 5. Re-rank | Cross-encoder scores the top 20 → keep top 5 | top_n = 5 |
-| 6. Abstain | If the best re-rank score < τ, **don't call the LLM**; return the abstain message + the 3 closest sources | τ tuned on golden set |
+| 6. Abstain | If the best re-rank score < τ, **don't call the LLM**; return the abstain message + the 3 closest sources | τ = −3.5 for MiniLM-L-12, tuned on the golden set (`evals/reports/ablation.md`) |
 | 7. Generate | Prompt (§9.1) with numbered context blocks; stream via LiteLLM Router | max 2,000 context tokens, 400 output tokens, temperature 0.1 |
 | 8. Post-check | Parse `[n]` markers; drop any citation that isn't in the context; if the answer has zero valid citations, append a "couldn't verify" notice | |
 | 9. Persist + trace | Save message, tokens, latency, model, citations; Langfuse spans for each step; write to cache if not abstained | |
