@@ -4,7 +4,8 @@ Each chunk becomes one point in `kb_chunks` with two named vectors:
 - `dense`: FastEmbed bge-small-en-v1.5 (384-d, cosine), computed here;
 - `bm25`: sent as `models.Document(text, model="Qdrant/bm25")`. Qdrant (1.15.3+) turns
   it into a sparse BM25 vector itself, and the collection's IDF modifier weights terms
-  by how rare they are across the corpus. Queries use the same call (Phase 2).
+  by how rare they are across the corpus. Queries use the same call (app/rag/retriever.py).
+The collection layout itself is in app/collection.py.
 
 Point IDs are UUIDv5 of document id + chunk index + content hash, so re-ingesting the
 same file overwrites the same points instead of duplicating them.
@@ -17,31 +18,14 @@ from typing import Any
 
 from qdrant_client import QdrantClient, models
 
+from app.collection import DENSE_VECTOR, PAYLOAD_INDEXES, SPARSE_VECTOR, bm25_document
 from app.ingest.chunk import Chunk
-
-DENSE_VECTOR = "dense"
-SPARSE_VECTOR = "bm25"
-BM25_MODEL = "Qdrant/bm25"
 
 # Fixed namespaces: changing either would change every ID.
 POINT_NAMESPACE = uuid.UUID("6f1c2a4e-3b5d-4c7e-9a1f-2d8e0b6c4a10")
 DOCUMENT_NAMESPACE = uuid.UUID("0b9e7d2c-5a4f-4e1b-8c3d-7f6a2e1d9b05")
 
-PAYLOAD_INDEXES = {
-    "category": models.PayloadSchemaType.KEYWORD,
-    "document_id": models.PayloadSchemaType.KEYWORD,
-    "source_id": models.PayloadSchemaType.KEYWORD,
-    "academic_year": models.PayloadSchemaType.KEYWORD,
-    "origin": models.PayloadSchemaType.KEYWORD,
-    "corpus_version": models.PayloadSchemaType.INTEGER,
-}
-
 SparseFactory = Callable[[str], models.Document | models.SparseVector]
-
-
-def bm25_document(text: str) -> models.Document:
-    """Raw text for Qdrant's server-side BM25."""
-    return models.Document(text=text, model=BM25_MODEL)
 
 
 def document_id(source_id: str, version: int) -> uuid.UUID:
