@@ -34,9 +34,9 @@
 
 	{#if segments.length}
 		<p class="excerpt">
-			{#each segments as segment, i (i)}{#if segment.mark}<mark>
-						{segment.text}
-					</mark>{:else}{segment.text}{/if}{/each}
+			{#each segments as segment, i (i)}
+				{#if segment.mark}<mark>{segment.text}</mark>{:else}{segment.text}{/if}
+			{/each}
 		</p>
 	{/if}
 
@@ -115,7 +115,6 @@
 		font-size: 14px;
 		line-height: 21px;
 		color: var(--ink-2);
-		white-space: pre-line;
 		overflow-wrap: anywhere;
 	}
 
