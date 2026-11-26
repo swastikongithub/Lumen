@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.api.deps import parse_session_headers
 from app.enums import Client
-from tests.conftest import OTHER_UUID, VALID_SESSION_ID
+from tests.conftest import OTHER_UUID, STUB_STATUS, VALID_SESSION_ID
 
 # Routes that read or write a session's data, with a valid request body.
 SESSION_ROUTES = [
@@ -61,7 +61,9 @@ def test_bad_headers_are_rejected_with_400(session_id, client, app_version, mess
 
 
 @pytest.mark.parametrize(("method", "path", "body"), SESSION_ROUTES)
-def test_session_routes_require_the_header(client: TestClient, method, path, body) -> None:
+def test_session_routes_require_the_header(
+    client: TestClient, stub_backends: None, method, path, body
+) -> None:
     response = send(client, method, path, body, headers={})
 
     assert response.status_code == 400
@@ -70,30 +72,32 @@ def test_session_routes_require_the_header(client: TestClient, method, path, bod
 
 @pytest.mark.parametrize(("method", "path", "body"), SESSION_ROUTES)
 def test_session_routes_accept_a_valid_header(
-    client: TestClient, session_headers: dict, method, path, body
+    client: TestClient, session_headers: dict, stub_backends: None, method, path, body
 ) -> None:
     response = send(client, method, path, body, headers=session_headers)
 
-    # Past the session check; the handler itself is a Phase 2 placeholder.
-    assert response.status_code == 501
+    # Past the session check: the handler ran and reached the (stub) database.
+    assert response.status_code == STUB_STATUS
 
 
 @pytest.mark.parametrize(("method", "path", "body"), SESSION_ROUTES)
-def test_a_cookie_is_not_a_session(client: TestClient, method, path, body) -> None:
+def test_a_cookie_is_not_a_session(
+    client: TestClient, stub_backends: None, method, path, body
+) -> None:
     cookie = f"X-Session-Id={VALID_SESSION_ID}; session_id={VALID_SESSION_ID}"
     response = send(client, method, path, body, headers={"Cookie": cookie})
 
     assert response.status_code == 400
 
 
-def test_public_routes_need_no_session(client: TestClient) -> None:
-    # /sources is a placeholder for now: 501, not 400, proves no session is required.
-    assert client.get("/api/v1/sources").status_code == 501
+def test_public_routes_need_no_session(client: TestClient, stub_backends: None) -> None:
+    # Reaching the (stub) database, not a 400, proves no session is required.
+    assert client.get("/api/v1/sources").status_code == STUB_STATUS
 
 
 @pytest.mark.parametrize(("method", "path", "body"), SESSION_ROUTES)
 def test_api_never_sets_cookies(
-    client: TestClient, session_headers: dict, method, path, body
+    client: TestClient, session_headers: dict, stub_backends: None, method, path, body
 ) -> None:
     response = send(client, method, path, body, headers=session_headers)
 
