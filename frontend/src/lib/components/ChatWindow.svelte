@@ -219,7 +219,10 @@
 		display: block;
 	}
 
+	/* Scroll boxes are positioned so the .visually-hidden text inside them (position:
+	   absolute) stays inside too, instead of stretching the page and adding a scrollbar. */
 	.scroll {
+		position: relative;
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;
@@ -370,6 +373,7 @@
 		}
 
 		.panel {
+			position: relative;
 			flex: 1 1 340px;
 			min-width: 0;
 			overflow-y: auto;
