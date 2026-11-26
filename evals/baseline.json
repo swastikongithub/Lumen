@@ -1,0 +1,13 @@
+{
+  "config": "Hybrid + ms-marco-MiniLM-L-12-v2",
+  "questions": 24,
+  "metrics": {
+    "hit_at_5": 0.9583,
+    "recall_at_5": 0.9583,
+    "mrr_at_10": 0.888
+  },
+  "tolerance": 0.03,
+  "fixture_sha256": "383cc200450eb86259d1979e4b7c84974e94acf75f82eea802857ec7a0483ea4",
+  "golden_set_sha256": "d98420dc87eaae7fddfd0c03db8f40e1dc83c1e399078b5656cca2be406ec01c",
+  "note": "First baseline: hybrid RRF (deterministic ties) + MiniLM-L-12 over 20 candidates, 384-token chunks, lpu.in fixture"
+}
