@@ -47,7 +47,8 @@ describe('createSourceIndex', () => {
 
 describe('formatDate', () => {
 	it('formats a date and ignores missing or bad ones', () => {
-		expect(formatDate('2026-11-25T18:30:00Z')).toBe('25 Nov 2026');
+		// Midday UTC is the same date in every timezone from UTC-11 to UTC+11.
+		expect(formatDate('2026-11-25T12:00:00Z')).toBe('25 Nov 2026');
 		expect(formatDate(null)).toBe('');
 		expect(formatDate('soon')).toBe('');
 	});
