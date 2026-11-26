@@ -36,7 +36,9 @@
 		flex-shrink: 0;
 	}
 
+	/* Positioned, so .visually-hidden text in a scrolled page stays inside it. */
 	main {
+		position: relative;
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;
