@@ -209,10 +209,10 @@
 		margin: 0 auto;
 	}
 
+	/* Phones: the filter pill row brings its own padding (Main mockup). */
 	.filters {
 		display: none;
 		flex-shrink: 0;
-		padding: 12px var(--page-pad) 0;
 	}
 
 	.filters.active {
@@ -313,6 +313,7 @@
 	@media (min-width: 768px) {
 		.filters {
 			display: block;
+			padding: 12px var(--page-pad) 0;
 		}
 	}
 
