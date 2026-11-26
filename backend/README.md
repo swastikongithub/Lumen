@@ -31,3 +31,34 @@ How the pipeline works:
 - **Exit code.** The command exits with code 1 if any source failed. The summary lists why.
 
 The first run downloads Docling's layout and OCR models, the bge-small tokenizer and the FastEmbed model. Expect a few minutes before the first document is processed.
+
+## Chat API (SPEC §9, §10)
+
+```bash
+cp .env.example .env               # then set GROQ_API_KEY and/or GEMINI_API_KEY
+uv run uvicorn app.main:app --reload
+```
+
+Try it once documents are ingested (any UUID works as the session ID):
+
+```bash
+curl -N -X POST http://localhost:8000/api/v1/chat \
+  -H "Content-Type: application/json" \
+  -H "X-Session-Id: 3f2b8c1e-6a4d-4e2f-9b7a-1c5d8e9f0a2b" \
+  -d '{"message": "Can I carry a mobile phone into the exam hall?"}'
+```
+
+What happens to a question (`app/rag/`):
+
+1. **Retrieve** (`retriever.py`). One Qdrant query runs a dense search (bge-small) and a BM25 search. RRF fuses them into the top 20, with an optional `category` filter.
+2. **Re-rank** (`reranker.py`). A cross-encoder scores those 20 against the question, and the top 5 are kept.
+3. **Abstain.** If the best score is below `ABSTAIN_THRESHOLD`, the answer is "I couldn't find this in the indexed documents.", with the 3 closest sources. No LLM is called.
+4. **Generate** (`prompts.py`, `generator.py`). Numbered context blocks (at most `CONTEXT_MAX_TOKENS`) go to the LiteLLM chain `primary` → `secondary` → `fallback`, and the answer streams back.
+5. **Check citations** (`citations.py`).
+   - `[n]` markers that point at a real block become citations.
+   - An answer with none gets a "couldn't match" notice.
+6. **Save.** Both turns are saved to `messages`.
+
+Without an LLM key the API still starts. Questions it would abstain on are answered normally, and the rest get an SSE `error` event with code `unavailable`.
+
+The embedding and re-ranking models load once at startup (`/ready` reports `models`). The first start downloads them, about 260 MB.
