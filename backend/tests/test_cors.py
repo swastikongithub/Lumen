@@ -35,3 +35,12 @@ def test_unknown_origin_is_refused(client: TestClient) -> None:
 
     assert response.status_code == 400
     assert "access-control-allow-origin" not in response.headers
+
+
+def test_browser_code_may_read_retry_after(client: TestClient) -> None:
+    # Retry-After is not a CORS-safelisted header: without this the web app could not
+    # read how long to wait after a 429.
+    response = client.get("/health", headers={"Origin": "http://localhost:5173"})
+
+    assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+    assert "retry-after" in response.headers["access-control-expose-headers"].lower()
