@@ -24,6 +24,11 @@ export default defineConfig([
 		}
 	},
 	{
+		// Svelte compiles *.svelte.test.js with runes, so a component test can pass $state props.
+		files: ['**/*.svelte.test.js'],
+		languageOptions: { globals: { $state: 'readonly', $derived: 'readonly' } }
+	},
+	{
 		rules: {
 			'svelte/button-has-type': 'error',
 			// Parameters that start with _ document an argument a function ignores on purpose.
