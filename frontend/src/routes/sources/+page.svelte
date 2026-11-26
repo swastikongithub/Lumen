@@ -36,8 +36,8 @@
 <div class="page">
 	<h1>Indexed documents</h1>
 	<p class="lead">
-		Lumen answers only from these public documents, and links to the page each answer comes from. If
-		a document you need is missing,
+		Lumen answers only from these public documents and links to the page each answer comes from.
+		Missing one you need?
 		<!-- eslint-disable svelte/no-navigation-without-resolve -- external URL, not an app route -->
 		<a
 			href={SUGGEST_DOCUMENT_URL}
@@ -45,8 +45,8 @@
 			rel="noopener noreferrer"
 			onclick={handleExternalLink}
 		>
-			suggest it<span class="visually-hidden"> (opens in a new tab)</span>
-		</a>.
+			Suggest a document<span class="visually-hidden"> (opens in a new tab)</span>
+		</a>
 		<!-- eslint-enable svelte/no-navigation-without-resolve -->
 	</p>
 	<Disclaimer variant="full" />
