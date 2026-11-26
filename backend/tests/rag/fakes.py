@@ -61,7 +61,8 @@ class FakeScorer:
 
 
 class FakeGenerator:
-    """A mocked LLM: streams the given reply in small pieces, or raises an error."""
+    """A mocked LLM: streams the given reply in small pieces, or raises an error.
+    `complete` (used by the follow-up rewrite) answers `rewrite`."""
 
     def __init__(
         self,
@@ -69,11 +70,16 @@ class FakeGenerator:
         *,
         model: str = "fake-model",
         error: Exception | None = None,
+        rewrite: str = "",
+        rewrite_error: Exception | None = None,
     ) -> None:
         self.reply = reply
         self.model = model
         self.error = error
+        self.rewrite = rewrite
+        self.rewrite_error = rewrite_error
         self.calls: list[list[dict[str, str]]] = []
+        self.rewrite_calls: list[list[dict[str, str]]] = []
 
     async def stream(
         self, messages: Sequence[dict[str, str]], info: GenerationInfo
@@ -85,6 +91,13 @@ class FakeGenerator:
         for start in range(0, len(self.reply), 8):
             yield self.reply[start : start + 8]
         info.tokens_in, info.tokens_out = 900, len(self.reply.split())
+
+    async def complete(self, messages: Sequence[dict[str, str]], *, max_tokens: int) -> str:
+        """Replies with `rewrite` (the follow-up rewrite), or raises `rewrite_error`."""
+        self.rewrite_calls.append(list(messages))
+        if self.rewrite_error:
+            raise self.rewrite_error
+        return self.rewrite
 
 
 def busy_generator(retry_after: int = 30) -> FakeGenerator:
