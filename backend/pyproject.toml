@@ -74,6 +74,9 @@ filterwarnings = [
     "ignore:Setting an item of incompatible dtype is deprecated",
     # Qdrant's in-memory test mode ignores payload indexes; the server uses them.
     "ignore:Payload indexes have no effect in the local Qdrant",
+    # Pydantic notes about TypedDicts inside LiteLLM (third-party code), not ours.
+    "ignore:.*are using the `ReadOnly` qualifier:UserWarning",
+    "ignore:Item .* is using the `ReadOnly` qualifier:UserWarning",
 ]
 markers = [
     "integration: needs Postgres from docker compose (skipped locally if it is down, fails in CI)",
