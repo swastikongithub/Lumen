@@ -2,7 +2,7 @@ import { get } from 'svelte/store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from './api.js';
 import { createChat, errorText } from './chat.js';
-import { busyUntil } from './stores.js';
+import { busyReason, busyUntil } from './stores.js';
 
 const NOW = 1_800_000_000_000;
 
@@ -46,8 +46,13 @@ function setup({ streams = [answered], api = {}, savedConversation = null } = {}
 
 const assistant = (chat) => get(chat.messages).filter((m) => m.role === 'assistant');
 
-beforeEach(() => busyUntil.set(0));
-afterEach(() => busyUntil.set(0));
+function resetBusy() {
+	busyUntil.set(0);
+	busyReason.set('rate_limited');
+}
+
+beforeEach(resetBusy);
+afterEach(resetBusy);
 
 describe('ask', () => {
 	it('streams an answer into the message list', async () => {
@@ -146,6 +151,30 @@ describe('errors', () => {
 			error: { code: 'rate_limited', retryAfter: 24 }
 		});
 		expect(get(busyUntil)).toBe(NOW + 24_000);
+		expect(get(busyReason)).toBe('rate_limited');
+	});
+
+	it("starts the countdown for Lumen's own rate limit, and holds questions until it ends", async () => {
+		const limited = new ApiError('too_many_requests', { status: 429, retryAfter: 42 });
+		const { chat, api } = setup({ streams: [limited, answered] });
+		await chat.ask('Q?');
+		expect(assistant(chat)[0]).toMatchObject({
+			status: 'error',
+			error: { code: 'too_many_requests', retryAfter: 42 }
+		});
+		expect(get(busyUntil)).toBe(NOW + 42_000);
+		expect(get(busyReason)).toBe('too_many_requests');
+
+		expect(await chat.ask('Another?')).toBe(false);
+		expect(await chat.retry(assistant(chat)[0].key)).toBe(false);
+		expect(api.streamChat).toHaveBeenCalledTimes(1);
+	});
+
+	it('does not start the countdown for other errors', async () => {
+		const { chat } = setup({ streams: [new ApiError('unavailable', { status: 503 })] });
+		await chat.ask('Q?');
+		expect(assistant(chat)[0].error.code).toBe('unavailable');
+		expect(get(busyUntil)).toBe(0);
 	});
 
 	it('uses 30 s when a 429 has no Retry-After', async () => {
@@ -198,6 +227,7 @@ describe('errors', () => {
 
 	it('gives readable error text', () => {
 		expect(errorText('network')).toMatch(/connection/);
+		expect(errorText('too_many_requests')).toMatch(/this device or network/);
 		expect(errorText('internal')).toBe('Something went wrong. Please try again.');
 		expect(errorText(undefined)).toBe('Something went wrong. Please try again.');
 	});
