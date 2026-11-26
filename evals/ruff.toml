@@ -1,0 +1,5 @@
+# The eval scripts use the backend's Ruff settings; `app` is the backend package.
+extend = "../backend/pyproject.toml"
+
+[lint.isort]
+known-first-party = ["app"]
