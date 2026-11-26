@@ -122,8 +122,17 @@
 		field-sizing: content;
 	}
 
+	/* Empty, the box is one line and a long placeholder is cut short, not wrapped. */
+	textarea:placeholder-shown {
+		field-sizing: fixed;
+		height: 48px;
+	}
+
 	textarea::placeholder {
 		color: var(--text-subtle);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	textarea:disabled {
