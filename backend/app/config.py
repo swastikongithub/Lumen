@@ -58,7 +58,9 @@ class Settings(BaseSettings):
     rerank_model: str = "Xenova/ms-marco-MiniLM-L-12-v2"
     rerank_top_n: int = Field(default=5, gt=0)
     # τ, compared with the best cross-encoder score (a raw logit, so it can be negative).
-    abstain_threshold: float = 0.0
+    # Tuned on the golden set for MiniLM-L-12 (evals/reports/ablation.md); re-tune it with
+    # the ablation when the re-ranker or the golden set changes.
+    abstain_threshold: float = -3.5
     abstain_sources: int = Field(default=3, ge=0)
 
     # Generation (SPEC §9 step 7, §9.2). Model ids are LiteLLM's "<provider>/<model>".
