@@ -14,11 +14,11 @@ from qdrant_client import QdrantClient, models
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.collection import ensure_collection
 from app.db.models import CorpusVersion, Document
 from app.enums import DocumentCategory, DocumentStatus
 from app.ingest.chunk import Chunk
 from app.ingest.fetch import FetchedFile, FetchError
-from app.ingest.index import ensure_collection
 from app.ingest.parse import ParsedDocument, ParseError
 from app.ingest.pipeline import Ingestor, Outcome
 from app.ingest.sources import Source

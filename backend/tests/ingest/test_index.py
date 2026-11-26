@@ -5,7 +5,13 @@ import uuid
 import pytest
 from qdrant_client import QdrantClient, models
 
-from app.collection import DENSE_VECTOR, PAYLOAD_INDEXES, SPARSE_VECTOR, bm25_document
+from app.collection import (
+    DENSE_VECTOR,
+    PAYLOAD_INDEXES,
+    SPARSE_VECTOR,
+    bm25_document,
+    ensure_collection,
+)
 from app.ingest.chunk import Chunk
 from app.ingest.index import (
     DocumentMeta,
@@ -13,7 +19,6 @@ from app.ingest.index import (
     count_document_points,
     delete_document_points,
     document_id,
-    ensure_collection,
     point_id,
     update_document_payload,
     upsert_points,

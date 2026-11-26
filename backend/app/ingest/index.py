@@ -18,7 +18,7 @@ from typing import Any
 
 from qdrant_client import QdrantClient, models
 
-from app.collection import DENSE_VECTOR, PAYLOAD_INDEXES, SPARSE_VECTOR, bm25_document
+from app.collection import DENSE_VECTOR, SPARSE_VECTOR, bm25_document
 from app.ingest.chunk import Chunk
 
 # Fixed namespaces: changing either would change every ID.
@@ -97,23 +97,6 @@ def build_points(
         )
         for chunk, vector in zip(chunks, dense_vectors, strict=True)
     ]
-
-
-def ensure_collection(client: QdrantClient, name: str, dim: int) -> None:
-    """Create `kb_chunks` with its named vectors and payload indexes if it is missing."""
-    if client.collection_exists(name):
-        return
-    client.create_collection(
-        collection_name=name,
-        vectors_config={
-            DENSE_VECTOR: models.VectorParams(size=dim, distance=models.Distance.COSINE)
-        },
-        sparse_vectors_config={
-            SPARSE_VECTOR: models.SparseVectorParams(modifier=models.Modifier.IDF)
-        },
-    )
-    for field_name, schema in PAYLOAD_INDEXES.items():
-        client.create_payload_index(name, field_name=field_name, field_schema=schema)
 
 
 def _document_filter(doc_id: uuid.UUID) -> models.Filter:

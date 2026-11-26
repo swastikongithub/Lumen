@@ -91,9 +91,10 @@ async def run_ingest(
     settings: Settings, sources: list[Source], *, force: bool, offline: bool, prune: bool
 ) -> list[SourceResult]:
     # Imported here so `lumen stats` does not pay for loading Docling.
+    from app.collection import ensure_collection
     from app.ingest.chunk import DocumentChunker, huggingface_tokenizer
     from app.ingest.fetch import Fetcher, urllib_get
-    from app.ingest.index import Embedder, ensure_collection
+    from app.ingest.index import Embedder
     from app.ingest.parse import ParsedDocument, Parser
     from app.ingest.pipeline import Ingestor
 
