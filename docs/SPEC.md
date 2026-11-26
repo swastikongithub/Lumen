@@ -270,7 +270,7 @@ Enum columns are stored as `varchar` + a CHECK constraint (not native Postgres e
 | role | enum | user, assistant |
 | content | text | |
 | rewritten_query | text null | standalone question used for retrieval |
-| citations | jsonb | `[{n, chunk_id, document_id, page_start, page_end}]` |
+| citations | jsonb | `[{n, chunk_id, document_id, source_id, title, url, category, section, page, page_end, text}]`: the same shape as the SSE `citations` event (§10), so a reloaded conversation shows the same source cards |
 | abstained | bool | |
 | cache_hit | bool | |
 | model | text null | which LLM actually answered; this and the fields below are filled only for assistant messages |
@@ -332,7 +332,7 @@ uv run lumen stats          # docs, chunks, avg chunk tokens, corpus_version
 | 1. Validate | Message 1–1,000 chars; rate limit by session + IP | 10 req/min, 100/day per session |
 | 2. Rewrite | If the conversation has earlier turns, one LLM call turns the follow-up into a standalone question (last 4 turns as input) | Skipped on first turn |
 | 3. Cache | Look up `answer_cache`; on hit, stream the cached answer and citations | threshold 0.95 |
-| 4. Retrieve | Qdrant Query API: `prefetch` dense (limit 30) + BM25 (limit 30) → RRF fusion → top 20, with optional `category` filter and `status = active` | k_dense = k_sparse = 30 |
+| 4. Retrieve | Qdrant Query API: `prefetch` dense (limit 30) + BM25 (limit 30) → RRF fusion → top 20, with optional `category` filter and the deployment's `origin` groups (§3.2). Only active documents are searched: ingestion deletes a superseded version's points (§8 step 6), so no `status` filter is needed | k_dense = k_sparse = 30 |
 | 5. Re-rank | Cross-encoder scores the top 20 → keep top 5 | top_n = 5 |
 | 6. Abstain | If the best re-rank score < τ, **don't call the LLM**; return the abstain message + the 3 closest sources | τ tuned on golden set |
 | 7. Generate | Prompt (§9.1) with numbered context blocks; stream via LiteLLM Router | max 2,000 context tokens, 400 output tokens, temperature 0.1 |
@@ -360,7 +360,7 @@ QUESTION: {standalone_question}
 ```
 
 ### 9.2 LLM routing and capacity
-- LiteLLM Router model list: `groq-primary` → `groq-secondary` (different Groq model; limits are per model) → `gemini-flash`. Fallback triggers on 429/5xx with a short cooldown.
+- LiteLLM Router model list: `primary` → `secondary` → `fallback`, by default Groq `openai/gpt-oss-120b` → Groq `openai/gpt-oss-20b` (a different Groq model; limits are per model) → Gemini Flash. All three are settings (`LLM_*_MODEL`), and a model joins the chain only when its provider's API key is set. Fallback triggers on 429/5xx with no retry on the same model, and the failed model cools down (`LLM_COOLDOWN_SECONDS`). gpt-oss models reason before answering, and that counts against the 400 output tokens, so they run with `reasoning_effort: low`.
 - **Capacity math (do this in the README, it's a strong interview talking point):** at ~2,500 tokens per answer, a model limited to 8,000 tokens/min serves ~3 answers/min, and 200,000 tokens/day serves ~80 answers/day. The cache, abstention-without-LLM and the fallback chain stretch this. If launch traffic exceeds free capacity, add a small paid key with a hard spend cap rather than degrading silently.
 - Show a friendly "busy, try again in a minute" message when every provider is rate-limited (SSE `error` event with `retry_after`).
 
@@ -384,10 +384,14 @@ QUESTION: {standalone_question}
 ```
 event: meta       data: {"conversation_id": "...", "message_id": "..."}
 event: token      data: {"t": "The minimum ..."}
-event: citations  data: [{"n":1,"title":"Examination Policy","page":12,"url":"..."}]
+event: citations  data: [{"n":1,"title":"Examination Policy","page":12,"page_end":12,"url":"...",
+                         "section":"4.2 Unfair Means","category":"exams","text":"<cited passage>",
+                         "source_id":"exam-policy","document_id":"...","chunk_id":"..."}]
 event: done       data: {"abstained": false, "cache_hit": false, "latency_ms": 1840}
 event: error      data: {"code": "rate_limited", "retry_after": 30}
 ```
+`error` replaces `citations` and `done` when a request fails. Its codes are `rate_limited` (every LLM is rate-limited, with `retry_after` in seconds), `unavailable` (no LLM could answer: no key configured or a provider outage) and `internal` (anything else; details stay in the server log). `page` is null for documents without pages (HTML, Markdown). For an abstained answer, `citations` holds the closest sources instead of evidence. The question is saved before the stream starts, and the answer is saved just before `citations`, so `message_id` can be rated once `done` arrives. A `conversation_id` that is unknown, or belongs to another session, gets a plain 404 instead of a stream.
+
 The frontend uses `fetch()` + `ReadableStream` to read the stream, because `EventSource` only supports GET.
 
 **Versioning:** every public route lives under `/api/v1`. Installed Android apps can't be force-updated, so breaking changes go to `/api/v2` while v1 keeps working, and `/api/v1/meta` can block versions that are too old.
