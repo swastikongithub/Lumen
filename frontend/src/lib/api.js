@@ -22,8 +22,9 @@ export const API_BASE = `${(import.meta.env.VITE_API_URL || DEFAULT_API_URL).rep
 
 /**
  * A failed request. `code` is one of the SSE error codes, or:
- * "not_found" (404), "bad_request" (4xx), "network" (no response) or "interrupted"
- * (the stream ended before `done`).
+ * "too_many_requests" (429: this device or network asked too often), "not_found" (404),
+ * "bad_request" (4xx), "network" (no response) or "interrupted" (the stream ended
+ * before `done`).
  */
 export class ApiError extends Error {
 	/**
@@ -39,24 +40,37 @@ export class ApiError extends Error {
 	}
 }
 
+/** A whole number of seconds >= 1, or undefined. @param {unknown} value */
+function seconds(value) {
+	const n = typeof value === 'number' ? value : Number.parseInt(String(value ?? ''), 10);
+	return Number.isFinite(n) && n >= 1 ? Math.ceil(n) : undefined;
+}
+
+/**
+ * A 429 is Lumen's own rate limit (SPEC §9 step 1): the body says
+ * {"code": "too_many_requests", "retry_after": 42} and Retry-After repeats the wait.
+ * Without that body (a proxy's 429), it counts as "busy".
+ * @param {Response} response
+ * @param {any} body
+ * @param {string | undefined} detail
+ */
+function rateLimitError(response, body, detail) {
+	const code = body?.code === 'too_many_requests' ? 'too_many_requests' : 'rate_limited';
+	const retryAfter = seconds(body?.retry_after) ?? seconds(response.headers.get('Retry-After'));
+	return new ApiError(code, { status: response.status, detail, retryAfter });
+}
+
 /** @param {Response} response */
 async function errorFrom(response) {
-	let detail;
+	let body;
 	try {
-		const body = await response.json();
-		detail = typeof body?.detail === 'string' ? body.detail : undefined;
+		body = await response.json();
 	} catch {
 		// Not JSON (a proxy's error page): the status code is enough.
 	}
+	const detail = typeof body?.detail === 'string' ? body.detail : undefined;
 	const { status } = response;
-	if (status === 429) {
-		const retryAfter = Number.parseInt(response.headers.get('Retry-After') ?? '', 10);
-		return new ApiError('rate_limited', {
-			status,
-			detail,
-			retryAfter: Number.isFinite(retryAfter) ? retryAfter : undefined
-		});
-	}
+	if (status === 429) return rateLimitError(response, body, detail);
 	if (status === 404) return new ApiError('not_found', { status, detail });
 	if (status >= 500) return new ApiError('unavailable', { status, detail });
 	return new ApiError('bad_request', { status, detail });
