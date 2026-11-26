@@ -165,7 +165,9 @@
 		color: var(--ink);
 	}
 
+	/* Positioned, so the cards' .visually-hidden text scrolls inside it. */
 	.cards {
+		position: relative;
 		min-height: 0;
 		overflow-y: auto;
 		display: flex;
