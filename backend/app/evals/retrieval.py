@@ -70,14 +70,16 @@ class Searcher:
         dense: DenseEncoder,
         *,
         sparse: SparseEncoder = bm25_document,
-        prefetch_limit: int = 30,
+        dense_limit: int = 30,
+        sparse_limit: int = 30,
         origins: Sequence[str] = (),
     ) -> None:
         self._client = client
         self._collection = collection
         self._dense = dense
         self._sparse = sparse
-        self._prefetch_limit = prefetch_limit
+        self._dense_limit = dense_limit
+        self._sparse_limit = sparse_limit
         self._origins = tuple(origins)
 
     async def search(self, mode: Mode, question: str, limit: int) -> list[RetrievedChunk]:
@@ -87,8 +89,8 @@ class Searcher:
                 self._collection,
                 self._dense,
                 sparse=self._sparse,
-                dense_limit=self._prefetch_limit,
-                sparse_limit=self._prefetch_limit,
+                dense_limit=self._dense_limit,
+                sparse_limit=self._sparse_limit,
                 fused_limit=limit,
                 origins=self._origins,
             )
