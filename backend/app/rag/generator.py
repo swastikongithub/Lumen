@@ -9,6 +9,9 @@ Only models whose provider has an API key configured join the chain.
 When every model is rate-limited the caller gets LlmBusyError with `retry_after`, which
 becomes the SSE `error` event the UI shows as a countdown. Any other failure is
 LlmUnavailableError.
+
+`stream` writes answers; `complete` returns a short reply in one piece (the follow-up
+rewrite, SPEC §9 step 2). Both go through the same chain.
 """
 
 import logging
@@ -59,6 +62,8 @@ class GenerationInfo:
 
 class Generator(Protocol):
     def stream(self, messages: Messages, info: GenerationInfo) -> AsyncIterator[str]: ...
+
+    async def complete(self, messages: Messages, *, max_tokens: int) -> str: ...
 
 
 def model_list(settings: Settings) -> list[dict[str, Any]]:
@@ -152,18 +157,13 @@ class LiteLLMGenerator:
     def configured(self) -> bool:
         return self._router is not None
 
-    async def stream(self, messages: Messages, info: GenerationInfo) -> AsyncIterator[str]:
-        """Yield the answer text as it arrives; fill `info` along the way."""
+    async def _call(self, messages: Messages, **params: Any) -> Any:
+        """One request through the chain, with failures mapped to the two errors above."""
         if self._router is None:
             raise LlmUnavailableError("no LLM provider key is configured")
         try:
-            response = await self._router.acompletion(
-                model=self._entry_group,
-                messages=list(messages),
-                stream=True,
-                stream_options={"include_usage": True},  # token counts in the last chunk
-                max_tokens=self._max_tokens,
-                temperature=self._temperature,
+            return await self._router.acompletion(
+                model=self._entry_group, messages=list(messages), **params
             )
         except (litellm.RateLimitError, litellm.RouterRateLimitError) as error:
             raise LlmBusyError(retry_after_seconds(error, self._default_retry_after)) from error
@@ -171,6 +171,21 @@ class LiteLLMGenerator:
             logger.warning("LLM request failed: %s", type(error).__name__)
             raise LlmUnavailableError(type(error).__name__) from error
 
+    async def complete(self, messages: Messages, *, max_tokens: int) -> str:
+        """The whole reply at once, at temperature 0; "" if the model wrote no text."""
+        response = await self._call(messages, max_tokens=max_tokens, temperature=0.0)
+        choices = getattr(response, "choices", None) or []
+        return (choices[0].message.content or "") if choices else ""
+
+    async def stream(self, messages: Messages, info: GenerationInfo) -> AsyncIterator[str]:
+        """Yield the answer text as it arrives; fill `info` along the way."""
+        response = await self._call(
+            messages,
+            stream=True,
+            stream_options={"include_usage": True},  # token counts in the last chunk
+            max_tokens=self._max_tokens,
+            temperature=self._temperature,
+        )
         try:
             async for chunk in response:
                 usage = getattr(chunk, "usage", None)
