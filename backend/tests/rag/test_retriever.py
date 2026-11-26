@@ -5,12 +5,13 @@ turns words into term ids, so each test can say which search should find what.
 """
 
 import zlib
+from dataclasses import replace
 
 import pytest
 from qdrant_client import AsyncQdrantClient, models
 
 from app.collection import DENSE_VECTOR, SPARSE_VECTOR
-from app.rag.retriever import HybridRetriever, RetrievedChunk, search_filter
+from app.rag.retriever import HybridRetriever, RetrievedChunk, rrf_order, search_filter
 
 COLLECTION = "kb_chunks"
 TOPICS = ("attendance", "hostel", "fee")
@@ -143,3 +144,35 @@ def test_chunk_section_is_the_innermost_heading() -> None:
 
     assert chunk.section == "Rules"
     assert chunk.text_with_headings == "Rules\nx"
+
+
+def test_rrf_ties_are_ordered_by_chunk_id() -> None:
+    base = RetrievedChunk.from_point(
+        models.ScoredPoint(id=1, version=0, score=0.0, payload=payload(1, "x", "fees"))
+    )
+    chunks = [
+        replace(base, chunk_id=chunk_id, score=score)
+        for chunk_id, score in [("c", 0.5), ("b", 0.25), ("a", 0.5), ("d", 1.0)]
+    ]
+
+    assert [chunk.chunk_id for chunk in rrf_order(chunks, 3)] == ["d", "a", "c"]
+
+
+async def test_fused_limit_cuts_after_the_tie_break(client) -> None:
+    def hybrid(fused_limit: int) -> HybridRetriever:
+        return HybridRetriever(
+            client,
+            COLLECTION,
+            fake_dense,
+            sparse=fake_sparse,
+            dense_limit=4,
+            sparse_limit=4,
+            fused_limit=fused_limit,
+        )
+
+    question = "attendance hostel fee"
+    everything = await hybrid(8).search(question)
+    top = await hybrid(2).search(question)
+
+    assert everything == rrf_order(everything, len(everything))
+    assert top == everything[:2]
