@@ -65,3 +65,26 @@ def test_secrets_are_not_printed(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_ready_timeout_must_be_positive() -> None:
     with pytest.raises(ValidationError):
         Settings(_env_file=None, ready_timeout_seconds=0)
+
+
+def test_rate_limits_default_to_the_spec() -> None:
+    settings = Settings(_env_file=None)
+
+    assert settings.rate_limit_session == "10/minute;100/day"  # SPEC §9 step 1
+    assert settings.trusted_proxy_hops == 0
+
+
+def test_a_malformed_rate_limit_fails_at_startup() -> None:
+    with pytest.raises(ValidationError, match="rate_limit_ip"):
+        Settings(_env_file=None, rate_limit_ip="ten per minute")
+
+
+def test_tracing_and_admin_are_off_without_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LANGFUSE_SECRET_KEY", "")
+    monkeypatch.setenv("ADMIN_API_KEY", "")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.langfuse_public_key is None
+    assert settings.langfuse_secret_key is None
+    assert settings.admin_api_key is None
