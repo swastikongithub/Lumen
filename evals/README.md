@@ -32,6 +32,32 @@ uv run python ../evals/answer_eval.py --no-ragas    # abstention + citations onl
 uv run python ../evals/answer_eval.py               # + RAGAS with the Gemini judge
 ```
 
+## Settings chosen from the ablation
+
+From `reports/ablation.md` (measured 2026-11-26 on the full 88-document index):
+
+- **Re-ranker: MiniLM-L-12 over the fused top 20** (`RERANK_MODEL`, `RETRIEVE_FUSED_LIMIT`).
+  It ties MiniLM-L-6 on Hit@5 (0.960) and has the best MRR@10 (0.880 against 0.857).
+  bge-reranker-base scored lower on this set (0.880 / 0.769) and took about 2.4 times as
+  long. Re-ranking only 10 candidates saves about 400 ms per question on this machine but
+  misses two more questions (Hit@5 0.920).
+- **Chunk size: 384 tokens** (`CHUNK_MAX_TOKENS`). 512 has the same Hit@5 but a lower
+  MRR@10 (0.831); 256 is lower on both.
+- **τ = −3.5** (`ABSTAIN_THRESHOLD`). 4% of answerable questions abstain by mistake, and
+  30% of unanswerable ones are stopped before the LLM. The rest reach the LLM, whose
+  prompt says to answer "not found"; `answer_eval.py` measures the combined result.
+  τ is on the re-ranker's logit scale, so re-tune it whenever the model changes.
+
+If the deployed instance misses the time-to-first-token target, the first levers are
+`RETRIEVE_FUSED_LIMIT=10` and the L-6 model; re-run the ablation and τ after either.
+
+Caveats: τ and the chunk size were picked on the same 60 questions they are reported on,
+and those questions were drafted from the documents (see the status note below), so read
+the numbers as an upper bound. Retrieval is deterministic (RRF ties are broken by chunk
+id), so re-runs give the same quality numbers. Latency is not: across three runs on a
+24-thread laptop, the L-12 re-rank p50 stayed near 1.25 s while its p95 ranged from 1.6
+to 3.4 s. Deployed latency comes from the production traces, not from this report.
+
 ## The golden set
 
 One JSON object per line:
@@ -79,7 +105,9 @@ than 3 points below `baseline.json`.
   public repository and UMS-linked documents are not public pages. Questions whose
   evidence is not in the fixture are skipped by the gate (the script prints how many
   were scored).
-- The gate scores the production setup: hybrid RRF + the configured re-ranker.
+- The gate scores the production setup: hybrid RRF + the configured re-ranker. 24
+  questions have their evidence in the fixture, so one newly missed question lowers Hit@5
+  by 0.042, more than the tolerance: any regression on a single question fails the build.
 - Update the baseline only in a pull request that says why:
 
 ```bash
