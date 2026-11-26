@@ -61,10 +61,13 @@ uv run python ../evals/answer_eval.py             # needs LLM keys; --no-ragas s
 uv run python ../evals/export_fixtures.py         # refresh the CI fixture after re-ingesting
 uv run ruff check . ../evals && uv run ruff format --check . ../evals
 
-# frontend
+# frontend (Node 22.17+; API URL from VITE_API_URL in frontend/.env, default http://localhost:8000)
 cd frontend
 npm install
-npm run dev
+npm run dev                        # http://localhost:5173
+npm run lint                       # Prettier + ESLint
+npm test                           # Vitest unit + component tests (jsdom)
+npm run build                      # static SPA in build/
 
 # android (from frontend/)
 npm run build && npx cap sync android
