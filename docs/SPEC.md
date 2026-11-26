@@ -74,7 +74,7 @@ All LPU specifics live in `data/sources.yaml` and the category list. Pointing Lu
 | LLM gateway | **LiteLLM** (Router with fallbacks) | **New** | One interface for Groq + Gemini; automatic fallback on HTTP 429 |
 | Generation LLM | **Groq** free plan (e.g., `openai/gpt-oss-120b`), fallback to a second Groq model, then **Gemini Flash** | **New** | Fast inference, free tier; per-model limits mean a chain adds capacity |
 | Judge LLM (evals) | **Gemini Flash** (different provider from the generator) | **New** | Reduces self-grading bias |
-| Evaluation | **RAGAS** (pinned version) + own retrieval-metrics script | **New** | Standard faithfulness/relevancy metrics + deterministic retrieval metrics for CI |
+| Evaluation | **RAGAS** (pinned: 0.4.4, `eval` group) + own retrieval-metrics script | **New** | Standard faithfulness/relevancy metrics + deterministic retrieval metrics for CI |
 | Observability | **Langfuse Cloud** (Hobby plan) via Python SDK `@observe` + LiteLLM callback | **New** | Per-request traces: rewrite → retrieve → rerank → generate, with tokens and latency |
 | App database | **PostgreSQL on Neon** (free plan) with **SQLAlchemy 2.0 (async) + asyncpg + Alembic** | Postgres reused; **ORM + migrations new** | Swapping a solid DB just for novelty adds risk with no CV value; the ORM layer is new |
 | Rate limiting | **slowapi** (in-memory) | **New** | No Redis needed; per-instance limits are acceptable with max 2 instances (documented trade-off) |
@@ -186,13 +186,15 @@ lumen/
 │   │   └── observability.py         # Langfuse setup
 │   └── tests/
 ├── evals/
+│   ├── README.md                    # how to run the evals and grow the golden set
 │   ├── golden_set.jsonl
-│   ├── fixtures/chunks.jsonl        # frozen corpus snapshot for CI
-│   ├── retrieval_eval.py            # Hit@k, Recall@k, MRR (no LLM)
-│   ├── answer_eval.py               # RAGAS + abstention accuracy
+│   ├── fixtures/chunks.jsonl        # frozen corpus snapshot for CI (lpu.in documents)
+│   ├── export_fixtures.py           # writes fixtures/chunks.jsonl from kb_chunks
+│   ├── retrieval_eval.py            # Hit@k, Recall@k, MRR (no LLM); the CI gate
+│   ├── answer_eval.py               # RAGAS + abstention accuracy + citation validity
 │   ├── ablations.py                 # runs configs, writes reports/ablation.md
 │   ├── baseline.json                # CI thresholds
-│   └── reports/
+│   └── reports/                     # the scripts are thin: logic in backend/app/evals/
 ├── frontend/                        # SvelteKit, JavaScript only
 │   ├── svelte.config.js
 │   ├── jsconfig.json                # optional; no tsconfig
@@ -416,7 +418,7 @@ The frontend uses `fetch()` + `ReadableStream` to read the stream, because `Even
  "reference_answer":"<answer written from the document>",
  "relevant":[{"source_id":"exam-policy","pages":[12]}]}
 ```
-Label relevance by **(document, page)**, not chunk ID, so the same set works across chunk-size ablations. A retrieved chunk counts as relevant if its document matches and its page range overlaps.
+`type` is `answerable`, `multi` or `unanswerable` (empty `relevant`; the reference is the "not found" sentence). Label relevance by **(document, page)**, not chunk ID, so the same set works across chunk-size ablations. A retrieved chunk counts as relevant if its document matches and its page range overlaps. Two optional keys per entry: `section` (a heading the chunk must sit under: for web pages, which have no pages, or to separate two pieces of evidence on one page) and `alternatives` (other documents holding the same text, e.g. the end-term and reappear exam instructions). Each `relevant` entry is one piece of evidence; Recall@5 is the share of entries found. Schema, loader and examples: `evals/README.md`, `backend/app/evals/golden.py`.
 
 Grow the set from production: every thumbs-down with reason `wrong` or `not_found` is reviewed and, if valid, added as a new case.
 
@@ -443,6 +445,8 @@ Run retrieval metrics for each config and publish the table in the README:
 
 Fill these with **measured** numbers only. They become your CV bullet ("improved Recall@5 from X to Y").
 
+`ablations.py` also scores MiniLM-L-6 and re-ranking only 10 candidates, and reports retrieval and re-rank latency (p50/p95) next to each row, because re-ranking is the slowest step before the first token (§11.4). The same run sweeps τ for each re-ranker (`app/evals/threshold.py`).
+
 ### 11.4 Targets (goals to measure against, not claims)
 - Hit@5 ≥ 0.85 on answerable questions
 - Faithfulness ≥ 0.85
@@ -450,7 +454,9 @@ Fill these with **measured** numbers only. They become your CV bullet ("improved
 - p95 time-to-first-token < 2.5 s on a warm instance
 
 ### 11.5 CI quality gate
-`ci.yml` starts a Qdrant service container, loads `evals/fixtures/chunks.jsonl` (frozen snapshot with precomputed dense vectors), runs `retrieval_eval.py` and **fails the build** if Hit@5 or MRR@10 drops more than 3 points below `evals/baseline.json`. Update the baseline only in a PR that explains why.
+`ci.yml` starts a Qdrant service container, loads `evals/fixtures/chunks.jsonl` (frozen snapshot with the stored dense and BM25 vectors, exported by `evals/export_fixtures.py`), runs `retrieval_eval.py --check` on the production setup (hybrid RRF + the configured re-ranker) and **fails the build** if Hit@5 or MRR@10 drops more than 3 points below `evals/baseline.json`. Update the baseline only in a PR that explains why (`--write-baseline --note`).
+
+The fixture holds only `origin: lpu.in` documents, because it is committed to a public repository and UMS-linked documents are not public pages (§3.2); the gate scores the golden-set questions whose evidence is in it. The full corpus is measured locally by `retrieval_eval.py` and `ablations.py`.
 
 ---
 
