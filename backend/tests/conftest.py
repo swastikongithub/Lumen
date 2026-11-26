@@ -22,7 +22,7 @@ def settings() -> Settings:
 @pytest.fixture
 def app(settings: Settings) -> FastAPI:
     # No ONNX models in unit tests: the lifespan gets a stub instead of the real pipeline.
-    return create_app(settings, pipeline_factory=lambda settings, qdrant: StubBackend())
+    return create_app(settings, pipeline_factory=lambda *args: StubBackend())
 
 
 @pytest.fixture
