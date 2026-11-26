@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from qdrant_client import AsyncQdrantClient
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
+from starlette.datastructures import State
 
 from app.api.deps import AppSettings
 
@@ -40,12 +41,19 @@ async def ping_qdrant(client: AsyncQdrantClient) -> None:
     await client.get_collections()
 
 
+async def check_models_loaded(state: State) -> None:
+    """The embedding and re-ranking models load in the lifespan, before serving starts."""
+    if getattr(state, "pipeline", None) is None:
+        raise RuntimeError("models not loaded")
+
+
 def readiness_checks(request: Request) -> dict[str, ReadinessCheck]:
-    """The dependencies /ready verifies. Phase 2 adds a check that the models are loaded."""
+    """The dependencies /ready verifies."""
     state = request.app.state
     return {
         "postgres": partial(ping_postgres, state.engine),
         "qdrant": partial(ping_qdrant, state.qdrant),
+        "models": partial(check_models_loaded, state),
     }
 
 
