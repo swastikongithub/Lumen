@@ -1,0 +1,23 @@
+node_modules
+
+# Output
+/.svelte-kit
+/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env (only the example is committed)
+.env
+.env.*
+!.env.example
+
+# Vite
+vite.config.js.timestamp-*
+
+# package-lock.json is committed (CI runs npm ci); other lockfiles are not used.
+pnpm-lock.yaml
+yarn.lock
+bun.lock
+bun.lockb

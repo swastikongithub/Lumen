@@ -1,0 +1,145 @@
+/* Design tokens from docs/DESIGN.md §2. Components use these variables in scoped CSS. */
+:root {
+	/* surfaces */
+	--bg: #f6f7f9;
+	--surface: #ffffff;
+	--surface-muted: #f1f3f5;
+	--info-bg: #eef1f4;
+
+	/* lines */
+	--border: #e3e6ea;
+	--border-strong: #c9cfd6;
+	--divider: #edeff2;
+	--dashed: #aeb6bf;
+	--disabled: #dde1e6; /* disabled input border and send button (Abstain mockup) */
+
+	/* text */
+	--ink: #101418; /* primary text, user bubble background */
+	--ink-2: #2a3139; /* excerpt text */
+	--text-muted: #3d4650; /* secondary text */
+	--text-subtle: #5b6470; /* meta text, icons */
+
+	/* brand */
+	--accent: #0f766e;
+	--accent-hover: #0b5a54;
+	--accent-soft: #0f766e1f;
+	--highlight: #fcd34d; /* logo mark highlight line */
+
+	/* states */
+	--danger: #b42318;
+	--danger-soft: #fdecea;
+	--warning-bg: #fff4e0;
+	--warning-text: #7a4100;
+	--scrim: rgba(16, 20, 24, 0.35);
+	--scrim-strong: rgba(16, 20, 24, 0.5);
+
+	/* type */
+	--font-brand: 'Bricolage Grotesque', system-ui, sans-serif;
+	--font-body: 'Inter', system-ui, sans-serif;
+
+	/* radii */
+	--r-xs: 6px; /* inline citation chip */
+	--r-sm: 8px; /* logo tile, number badges */
+	--r-md: 10px; /* menu items, excerpt boxes */
+	--r-lg: 12px; /* icon buttons, banners */
+	--r-xl: 14px; /* source cards */
+	--r-2xl: 16px; /* answer cards, category menu panel */
+	--r-pill: 999px;
+
+	--shadow-menu: 0 16px 40px rgba(16, 20, 24, 0.18);
+
+	/* layout */
+	--header-h: 56px;
+	--page-pad: 16px;
+	--content-max: 1240px;
+}
+
+@media (min-width: 1024px) {
+	:root {
+		--page-pad: 24px;
+	}
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+}
+
+body {
+	margin: 0;
+	min-height: 100dvh;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: var(--font-body);
+	font-size: 15px;
+	line-height: 22px;
+	-webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+	font: inherit;
+	color: inherit;
+}
+
+button {
+	cursor: pointer;
+}
+
+button:disabled {
+	cursor: not-allowed;
+}
+
+a {
+	color: var(--accent);
+}
+
+a:hover {
+	color: var(--accent-hover);
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-brand);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+}
+
+/* DESIGN.md §6: visible focus ring, 2 px accent outline with a 2 px offset. */
+:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 2px;
+}
+
+/* Visible to screen readers only. */
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

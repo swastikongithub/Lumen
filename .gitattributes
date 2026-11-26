@@ -1,3 +1,6 @@
 # The eval fixtures are hashed for the CI baseline; keep them LF on every OS.
 evals/*.jsonl text eol=lf
 evals/fixtures/*.jsonl text eol=lf
+
+# Prettier checks for LF line endings, so keep the frontend LF on Windows checkouts too.
+frontend/** text=auto eol=lf
