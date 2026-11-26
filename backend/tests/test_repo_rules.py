@@ -1,5 +1,7 @@
 """Guards for the CLAUDE.md hard rules that a file scan can check."""
 
+import subprocess
+import sys
 import tomllib
 from pathlib import Path
 
@@ -52,3 +54,16 @@ def test_api_image_dependencies_exclude_docling_and_frameworks() -> None:
     banned = ("docling", "langchain", "llama-index", "llama_index")
     offenders = [dep for dep in api_dependencies() if dep.startswith(banned)]
     assert offenders == []
+
+
+def test_the_api_process_never_imports_docling() -> None:
+    """Rule 3 at runtime: importing the API must not pull in Docling, even indirectly."""
+    code = (
+        "import sys, app.main; "
+        "found = sorted(m for m in sys.modules if m.split('.')[0] in ('docling', 'docling_core')); "
+        "print(found); sys.exit(1 if found else 0)"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=BACKEND_DIR, capture_output=True, text=True, check=False
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
