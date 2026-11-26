@@ -6,7 +6,10 @@ One Query API call runs two searches and fuses them:
 - `bm25`: the question as a `models.Document`, which Qdrant turns into BM25 terms
   itself (exact words: "Section 34.0", "Form ER-5").
 Reciprocal Rank Fusion (RRF) merges the two lists using only rank positions, so the
-two score scales never have to be compared.
+two score scales never have to be compared. RRF scores tie often (a chunk ranked 3rd by
+one search and missing from the other scores the same as the reverse), and Qdrant returns
+tied points in no fixed order, so the fused list is re-sorted here with the chunk id as
+the tie-break: the same question always gets the same candidates.
 
 Only active documents are searched. Ingestion deletes a superseded version's points
 (SPEC §8 step 6), so every point in `kb_chunks` already belongs to an active document
@@ -88,6 +91,11 @@ def search_filter(category: str | None, origins: Sequence[str]) -> models.Filter
     return models.Filter(must=conditions) if conditions else None
 
 
+def rrf_order(chunks: Sequence[RetrievedChunk], limit: int) -> list[RetrievedChunk]:
+    """The `limit` best chunks by RRF score; equal scores are ordered by chunk id."""
+    return sorted(chunks, key=lambda chunk: (-chunk.score, chunk.chunk_id))[:limit]
+
+
 class QueryEmbedder:
     """FastEmbed dense query vectors. Loading the ONNX model takes a few seconds."""
 
@@ -141,7 +149,9 @@ class HybridRetriever:
                 ),
             ],
             query=models.FusionQuery(fusion=models.Fusion.RRF),
-            limit=self._fused_limit,
+            # Every fused candidate, so ties at the cut-off are settled by rrf_order.
+            limit=self._dense_limit + self._sparse_limit,
             with_payload=True,
         )
-        return [RetrievedChunk.from_point(point) for point in response.points]
+        chunks = [RetrievedChunk.from_point(point) for point in response.points]
+        return rrf_order(chunks, self._fused_limit)
