@@ -15,7 +15,10 @@
 	let { citation, answer = '', selected = false, id } = $props();
 
 	const segments = $derived(excerpt(citation.text, answer, citation.n));
-	const academicYear = $derived($sourceIndex.byId.get(citation.source_id)?.academic_year ?? null);
+	// A non-breaking hyphen keeps "2025-26" on one line when the meta line wraps.
+	const academicYear = $derived(
+		$sourceIndex.byId.get(citation.source_id)?.academic_year?.replace(/-/g, '‑') ?? null
+	);
 	const href = $derived(sourceHref(citation));
 	const titleId = $derived(id ? `${id}-title` : undefined);
 </script>
